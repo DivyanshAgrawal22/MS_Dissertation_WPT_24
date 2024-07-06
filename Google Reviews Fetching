@@ -1,1 +1,422 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"name":"python","version":"3.10.13","mimetype":"text/x-python","codemirror_mode":{"name":"ipython","version":3},"pygments_lexer":"ipython3","nbconvert_exporter":"python","file_extension":".py"}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"code","source":"!pip install googlemaps","metadata":{"execution":{"iopub.status.busy":"2024-07-03T22:47:48.004422Z","iopub.execute_input":"2024-07-03T22:47:48.005008Z","iopub.status.idle":"2024-07-03T22:48:08.470798Z","shell.execute_reply.started":"2024-07-03T22:47:48.004963Z","shell.execute_reply":"2024-07-03T22:48:08.469369Z"},"trusted":true},"execution_count":15,"outputs":[{"name":"stdout","text":"Collecting googlemaps\n  Downloading googlemaps-4.10.0.tar.gz (33 kB)\n  Preparing metadata (setup.py) ... \u001b[?25ldone\n\u001b[?25hRequirement already satisfied: requests<3.0,>=2.20.0 in /opt/conda/lib/python3.10/site-packages (from googlemaps) (2.32.3)\nRequirement already satisfied: charset-normalizer<4,>=2 in /opt/conda/lib/python3.10/site-packages (from requests<3.0,>=2.20.0->googlemaps) (3.3.2)\nRequirement already satisfied: idna<4,>=2.5 in /opt/conda/lib/python3.10/site-packages (from requests<3.0,>=2.20.0->googlemaps) (3.6)\nRequirement already satisfied: urllib3<3,>=1.21.1 in /opt/conda/lib/python3.10/site-packages (from requests<3.0,>=2.20.0->googlemaps) (1.26.18)\nRequirement already satisfied: certifi>=2017.4.17 in /opt/conda/lib/python3.10/site-packages (from requests<3.0,>=2.20.0->googlemaps) (2024.2.2)\nBuilding wheels for collected packages: googlemaps\n  Building wheel for googlemaps (setup.py) ... \u001b[?25ldone\n\u001b[?25h  Created wheel for googlemaps: filename=googlemaps-4.10.0-py3-none-any.whl size=40711 sha256=4b61c2ce2714c7b61d75acd5ecf7860d8782188b483f3595dfd4983a6dab7236\n  Stored in directory: /root/.cache/pip/wheels/17/f8/79/999d5d37118fd35d7219ef57933eb9d09886c4c4503a800f84\nSuccessfully built googlemaps\nInstalling collected packages: googlemaps\nSuccessfully installed googlemaps-4.10.0\n","output_type":"stream"}]},{"cell_type":"code","source":"import googlemaps\nimport pandas as pd\nimport logging\n\n# Set up logging\nlogging.basicConfig(level=logging.INFO)\nlogger = logging.getLogger(__name__)\n\n# Your Google Places API key\nAPI_KEY = 'AIzaSyBH_DO35NwbTNg4HzvIQWIO7o3TFlmE32s'\n\ndef get_place_id(gmaps, place_name):\n    \"\"\"\n    Fetch the Place ID for a given place name using the Google Places API.\n    \"\"\"\n    result = gmaps.find_place(input=place_name, input_type=\"textquery\", fields=[\"place_id\"])\n    \n    if result[\"candidates\"]:\n        place_id = result[\"candidates\"][0][\"place_id\"]\n        print(f\"Found Place ID for {place_name}: {place_id}\")\n        return place_id\n    else:\n        print(f\"No place ID found for {place_name}\")\n        return None\n\ndef get_place_reviews(gmaps, place_id):\n    \"\"\"\n    Fetch reviews for a given Place ID using the Google Places API.\n    \"\"\"\n    place_details = gmaps.place(place_id=place_id, fields=[\"reviews\"])\n    if 'result' in place_details and 'reviews' in place_details['result']:\n        return place_details['result']['reviews']\n    else:\n        print(f\"No reviews found for Place ID {place_id}\")\n        return []\n\ndef fetch_and_save_reviews(gmaps, place_name, output_file):\n    \"\"\"\n    Fetch reviews for a place name and save them to an Excel file.\n    \"\"\"\n    print(f\"Fetching Place ID for {place_name}...\")\n    place_id = get_place_id(gmaps, place_name)\n    \n    if place_id:\n        print(f\"Fetching reviews for {place_name}...\")\n        reviews = get_place_reviews(gmaps, place_id)\n        all_reviews = []\n        \n        if reviews:\n            for review in reviews:\n                all_reviews.append({\n                    'Place': place_name,\n                    'Author': review.get('author_name'),\n                    'Rating': review.get('rating'),\n                    'Text': review.get('text'),\n                    'Time': review.get('time')\n                })\n            \n            # Save to Excel\n            df = pd.DataFrame(all_reviews)\n            df.to_excel(output_file, index=False)\n            print(f\"Reviews saved to {output_file}\")\n        else:\n            print(f\"No reviews fetched for {place_name}.\")\n    else:\n        print(f\"No Place ID found for {place_name}, no reviews fetched.\")","metadata":{"execution":{"iopub.status.busy":"2024-07-03T22:58:18.442920Z","iopub.execute_input":"2024-07-03T22:58:18.443416Z","iopub.status.idle":"2024-07-03T22:58:18.459944Z","shell.execute_reply.started":"2024-07-03T22:58:18.443382Z","shell.execute_reply":"2024-07-03T22:58:18.458483Z"},"trusted":true},"execution_count":21,"outputs":[]},{"cell_type":"code","source":"gmaps = googlemaps.Client(key=API_KEY)\n\nplaces = {\n    \"Paignton Zoo Environmental Park\": \"paignton_zoo_reviews.xlsx\",\n    \"Newquay Zoo\": \"newquay_zoo_reviews.xlsx\"\n}\n\nfor place_name, output_file in places.items():\n    fetch_and_save_reviews(gmaps, place_name, output_file)","metadata":{"execution":{"iopub.status.busy":"2024-07-03T22:58:21.891845Z","iopub.execute_input":"2024-07-03T22:58:21.892308Z","iopub.status.idle":"2024-07-03T22:58:22.069087Z","shell.execute_reply.started":"2024-07-03T22:58:21.892275Z","shell.execute_reply":"2024-07-03T22:58:22.067941Z"},"trusted":true},"execution_count":22,"outputs":[{"name":"stdout","text":"Fetching Place ID for Paignton Zoo Environmental Park...\nFound Place ID for Paignton Zoo Environmental Park: ChIJ01trNe0abUgRAeyKLYuyznc\nFetching reviews for Paignton Zoo Environmental Park...\nReviews saved to paignton_zoo_reviews.xlsx\nFetching Place ID for Newquay Zoo...\nFound Place ID for Newquay Zoo: ChIJWz8_XSQOa0gRslKwKup_2Ww\nFetching reviews for Newquay Zoo...\nReviews saved to newquay_zoo_reviews.xlsx\n","output_type":"stream"}]},{"cell_type":"code","source":"","metadata":{},"execution_count":null,"outputs":[]}]}
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "0dcdd9b6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-06T19:36:36.750046Z",
+     "iopub.status.busy": "2024-07-06T19:36:36.749683Z",
+     "iopub.status.idle": "2024-07-06T19:36:36.755484Z",
+     "shell.execute_reply": "2024-07-06T19:36:36.754528Z"
+    },
+    "papermill": {
+     "duration": 0.013622,
+     "end_time": "2024-07-06T19:36:36.758326",
+     "exception": false,
+     "start_time": "2024-07-06T19:36:36.744704",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# !pip install googlemaps"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "656182dd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-06T19:36:36.765953Z",
+     "iopub.status.busy": "2024-07-06T19:36:36.765578Z",
+     "iopub.status.idle": "2024-07-06T19:36:36.773142Z",
+     "shell.execute_reply": "2024-07-06T19:36:36.772050Z"
+    },
+    "papermill": {
+     "duration": 0.014734,
+     "end_time": "2024-07-06T19:36:36.776157",
+     "exception": false,
+     "start_time": "2024-07-06T19:36:36.761423",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# import googlemaps\n",
+    "# import pandas as pd\n",
+    "# import logging\n",
+    "\n",
+    "# # Set up logging\n",
+    "# logging.basicConfig(level=logging.INFO)\n",
+    "# logger = logging.getLogger(__name__)\n",
+    "\n",
+    "# # Your Google Places API key\n",
+    "# API_KEY = 'AIzaSyBH_DO35NwbTNg4HzvIQWIO7o3TFlmE32s'\n",
+    "\n",
+    "# def get_place_id(gmaps, place_name):\n",
+    "#     \"\"\"\n",
+    "#     Fetch the Place ID for a given place name using the Google Places API.\n",
+    "#     \"\"\"\n",
+    "#     result = gmaps.find_place(input=place_name, input_type=\"textquery\", fields=[\"place_id\"])\n",
+    "    \n",
+    "#     if result[\"candidates\"]:\n",
+    "#         place_id = result[\"candidates\"][0][\"place_id\"]\n",
+    "#         print(f\"Found Place ID for {place_name}: {place_id}\")\n",
+    "#         return place_id\n",
+    "#     else:\n",
+    "#         print(f\"No place ID found for {place_name}\")\n",
+    "#         return None\n",
+    "\n",
+    "# def get_place_reviews(gmaps, place_id):\n",
+    "#     \"\"\"\n",
+    "#     Fetch reviews for a given Place ID using the Google Places API.\n",
+    "#     \"\"\"\n",
+    "#     all_reviews = []\n",
+    "#     next_page_token = None\n",
+    "    \n",
+    "#     while True:\n",
+    "#         place_details = gmaps.place(place_id=place_id, fields=[\"reviews\"])\n",
+    "#         if 'result' in place_details and 'reviews' in place_details['result']:\n",
+    "#             all_reviews.extend(place_details['result']['reviews'])\n",
+    "        \n",
+    "#         next_page_token = place_details.get('next_page_token')\n",
+    "#         if not next_page_token:\n",
+    "#             break\n",
+    "        \n",
+    "#         # Google recommends a short delay between requests when using next_page_token\n",
+    "#         time.sleep(2)\n",
+    "    \n",
+    "#     return all_reviews\n",
+    "\n",
+    "# def fetch_and_save_reviews(gmaps, place_name, output_file):\n",
+    "#     \"\"\"\n",
+    "#     Fetch reviews for a place name and save them to an Excel file.\n",
+    "#     \"\"\"\n",
+    "#     print(f\"Fetching Place ID for {place_name}...\")\n",
+    "#     place_id = get_place_id(gmaps, place_name)\n",
+    "    \n",
+    "#     if place_id:\n",
+    "#         print(f\"Fetching reviews for {place_name}...\")\n",
+    "#         reviews = get_place_reviews(gmaps, place_id)\n",
+    "#         all_reviews = []\n",
+    "        \n",
+    "#         if reviews:\n",
+    "#             for review in reviews:\n",
+    "#                 all_reviews.append({\n",
+    "#                     'Place': place_name,\n",
+    "#                     'Author': review.get('author_name'),\n",
+    "#                     'Rating': review.get('rating'),\n",
+    "#                     'Text': review.get('text'),\n",
+    "#                     'Time': review.get('time')\n",
+    "#                 })\n",
+    "            \n",
+    "#             # Save to Excel\n",
+    "#             df = pd.DataFrame(all_reviews)\n",
+    "#             df.to_excel(output_file, index=False)\n",
+    "#             print(f\"Reviews saved to {output_file}\")\n",
+    "#         else:\n",
+    "#             print(f\"No reviews fetched for {place_name}.\")\n",
+    "#     else:\n",
+    "#         print(f\"No Place ID found for {place_name}, no reviews fetched.\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "640f90df",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-06T19:36:36.783550Z",
+     "iopub.status.busy": "2024-07-06T19:36:36.783193Z",
+     "iopub.status.idle": "2024-07-06T19:36:36.787719Z",
+     "shell.execute_reply": "2024-07-06T19:36:36.786729Z"
+    },
+    "papermill": {
+     "duration": 0.010764,
+     "end_time": "2024-07-06T19:36:36.789938",
+     "exception": false,
+     "start_time": "2024-07-06T19:36:36.779174",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# gmaps = googlemaps.Client(key=API_KEY)\n",
+    "\n",
+    "# places = {\n",
+    "#     \"Paignton Zoo Environmental Park\": \"paignton_zoo_reviews.xlsx\",\n",
+    "#     \"Newquay Zoo\": \"newquay_zoo_reviews.xlsx\"\n",
+    "# }\n",
+    "\n",
+    "# for place_name, output_file in places.items():\n",
+    "#     fetch_and_save_reviews(gmaps, place_name, output_file)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "4823b826",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-06T19:36:36.797135Z",
+     "iopub.status.busy": "2024-07-06T19:36:36.796760Z",
+     "iopub.status.idle": "2024-07-06T19:36:36.801856Z",
+     "shell.execute_reply": "2024-07-06T19:36:36.800885Z"
+    },
+    "papermill": {
+     "duration": 0.010993,
+     "end_time": "2024-07-06T19:36:36.803832",
+     "exception": false,
+     "start_time": "2024-07-06T19:36:36.792839",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# import requests\n",
+    "# from bs4 import BeautifulSoup\n",
+    "# import pandas as pd\n",
+    "# import time\n",
+    "\n",
+    "# def fetch_tripadvisor_reviews(url, num_pages):\n",
+    "#     reviews = []\n",
+    "    \n",
+    "#     for page in range(num_pages):\n",
+    "#         response = requests.get(url, params={'page': page})\n",
+    "#         soup = BeautifulSoup(response.content, 'html.parser')\n",
+    "        \n",
+    "#         review_blocks = soup.find_all('div', class_='review-container')\n",
+    "#         for block in review_blocks:\n",
+    "#             try:\n",
+    "#                 review = {\n",
+    "#                     'Author': block.find('span', class_='scrname').text.strip(),\n",
+    "#                     'Rating': block.find('span', class_='ui_bubble_rating')['class'][1].split('_')[1],\n",
+    "#                     'Text': block.find('p', class_='partial_entry').text.strip(),\n",
+    "#                     'Date': block.find('span', class_='ratingDate')['title']\n",
+    "#                 }\n",
+    "#                 reviews.append(review)\n",
+    "#             except AttributeError:\n",
+    "#                 continue\n",
+    "        \n",
+    "#         time.sleep(2)  # Respectful scraping by adding delay between requests\n",
+    "    \n",
+    "#     return reviews\n",
+    "\n",
+    "# def save_reviews_to_excel(reviews, filename):\n",
+    "#     df = pd.DataFrame(reviews)\n",
+    "#     df.to_excel(filename, index=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "2cc7b395",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-06T19:36:36.811107Z",
+     "iopub.status.busy": "2024-07-06T19:36:36.810769Z",
+     "iopub.status.idle": "2024-07-06T19:36:50.326558Z",
+     "shell.execute_reply": "2024-07-06T19:36:50.325330Z"
+    },
+    "papermill": {
+     "duration": 13.522164,
+     "end_time": "2024-07-06T19:36:50.329186",
+     "exception": false,
+     "start_time": "2024-07-06T19:36:36.807022",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Collecting fake_useragent\r\n",
+      "  Downloading fake_useragent-1.5.1-py3-none-any.whl.metadata (15 kB)\r\n",
+      "Downloading fake_useragent-1.5.1-py3-none-any.whl (17 kB)\r\n",
+      "Installing collected packages: fake_useragent\r\n",
+      "Successfully installed fake_useragent-1.5.1\r\n"
+     ]
+    }
+   ],
+   "source": [
+    "!pip install fake_useragent"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "d714610e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-06T19:36:50.337761Z",
+     "iopub.status.busy": "2024-07-06T19:36:50.337360Z",
+     "iopub.status.idle": "2024-07-06T19:36:51.414887Z",
+     "shell.execute_reply": "2024-07-06T19:36:51.413917Z"
+    },
+    "papermill": {
+     "duration": 1.084775,
+     "end_time": "2024-07-06T19:36:51.417296",
+     "exception": false,
+     "start_time": "2024-07-06T19:36:50.332521",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import requests\n",
+    "from bs4 import BeautifulSoup\n",
+    "import pandas as pd\n",
+    "import time\n",
+    "from fake_useragent import UserAgent\n",
+    "import logging\n",
+    "\n",
+    "# Set up logging\n",
+    "logging.basicConfig(level=logging.INFO)\n",
+    "logger = logging.getLogger(__name__)\n",
+    "\n",
+    "ua = UserAgent()\n",
+    "\n",
+    "def fetch_tripadvisor_reviews(url, num_pages, retries=3, delay=2):\n",
+    "    reviews = []\n",
+    "\n",
+    "    for page in range(num_pages):\n",
+    "        for attempt in range(retries):\n",
+    "            try:\n",
+    "                headers = {'User-Agent': ua.random}\n",
+    "                response = requests.get(url, params={'page': page}, headers=headers)\n",
+    "                response.raise_for_status()  # Raise HTTPError for bad responses\n",
+    "\n",
+    "                soup = BeautifulSoup(response.content, 'html.parser')\n",
+    "                review_blocks = soup.find_all('div', class_='review-container')\n",
+    "                for block in review_blocks:\n",
+    "                    try:\n",
+    "                        review = {\n",
+    "                            'Author': block.find('span', class_='scrname').text.strip(),\n",
+    "                            'Rating': block.find('span', class_='ui_bubble_rating')['class'][1].split('_')[1],\n",
+    "                            'Text': block.find('p', class_='partial_entry').text.strip(),\n",
+    "                            'Date': block.find('span', class_='ratingDate')['title']\n",
+    "                        }\n",
+    "                        reviews.append(review)\n",
+    "                    except AttributeError:\n",
+    "                        continue\n",
+    "\n",
+    "                logger.info(f\"Successfully fetched page {page+1}\")\n",
+    "                time.sleep(delay)  # Respectful scraping by adding delay between requests\n",
+    "                break  # Break out of retry loop if successful\n",
+    "\n",
+    "            except requests.exceptions.RequestException as e:\n",
+    "                logger.warning(f\"Attempt {attempt+1} failed: {e}\")\n",
+    "                time.sleep(delay)\n",
+    "                if attempt == retries - 1:\n",
+    "                    logger.error(f\"Failed to fetch page {page+1} after {retries} retries\")\n",
+    "\n",
+    "    return reviews\n",
+    "\n",
+    "def save_reviews_to_excel(reviews, filename):\n",
+    "    df = pd.DataFrame(reviews)\n",
+    "    df.to_excel(filename, index=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "2ca62e6b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-06T19:36:51.425482Z",
+     "iopub.status.busy": "2024-07-06T19:36:51.424959Z",
+     "iopub.status.idle": "2024-07-06T19:39:08.690060Z",
+     "shell.execute_reply": "2024-07-06T19:39:08.688938Z"
+    },
+    "papermill": {
+     "duration": 137.272609,
+     "end_time": "2024-07-06T19:39:08.693221",
+     "exception": false,
+     "start_time": "2024-07-06T19:36:51.420612",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "paignton_zoo_url = 'https://www.tripadvisor.com/Attraction_Review-g190920-d191010-Reviews-Paignton_Zoo_Environmental_Park-Paignton_Devon_England.html'\n",
+    "newquay_zoo_url = 'https://www.tripadvisor.com/Attraction_Review-g186239-d214971-Reviews-Newquay_Zoo-Newquay_Cornwall_England.html'\n",
+    "    \n",
+    "paignton_reviews = fetch_tripadvisor_reviews(paignton_zoo_url, 10)  # Fetch 10 pages of reviews\n",
+    "newquay_reviews = fetch_tripadvisor_reviews(newquay_zoo_url, 10)  # Fetch 10 pages of reviews\n",
+    "    \n",
+    "save_reviews_to_excel(paignton_reviews, 'paignton_zoo_reviews_tripadvisor.xlsx')\n",
+    "save_reviews_to_excel(newquay_reviews, 'newquay_zoo_reviews_tripadvisor.xlsx')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ed546287",
+   "metadata": {
+    "papermill": {
+     "duration": 0.004347,
+     "end_time": "2024-07-06T19:39:08.702567",
+     "exception": false,
+     "start_time": "2024-07-06T19:39:08.698220",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [],
+   "dockerImageVersionId": 30732,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 155.156068,
+   "end_time": "2024-07-06T19:39:09.229697",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-07-06T19:36:34.073629",
+   "version": "2.5.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
