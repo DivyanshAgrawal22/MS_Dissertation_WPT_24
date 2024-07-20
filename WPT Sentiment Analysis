@@ -3,19 +3,19 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "6a0b8c8c",
+   "id": "436ad7b3",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:19:40.820736Z",
-     "iopub.status.busy": "2024-07-16T23:19:40.819797Z",
-     "iopub.status.idle": "2024-07-16T23:19:54.248884Z",
-     "shell.execute_reply": "2024-07-16T23:19:54.247548Z"
+     "iopub.execute_input": "2024-07-19T19:53:02.260816Z",
+     "iopub.status.busy": "2024-07-19T19:53:02.260367Z",
+     "iopub.status.idle": "2024-07-19T19:53:16.875394Z",
+     "shell.execute_reply": "2024-07-19T19:53:16.874328Z"
     },
     "papermill": {
-     "duration": 13.44381,
-     "end_time": "2024-07-16T23:19:54.251512",
+     "duration": 14.631271,
+     "end_time": "2024-07-19T19:53:16.878121",
      "exception": false,
-     "start_time": "2024-07-16T23:19:40.807702",
+     "start_time": "2024-07-19T19:53:02.246850",
      "status": "completed"
     },
     "tags": []
@@ -53,19 +53,19 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "e90a147a",
+   "id": "f318e6c6",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:19:54.273610Z",
-     "iopub.status.busy": "2024-07-16T23:19:54.273204Z",
-     "iopub.status.idle": "2024-07-16T23:20:25.760562Z",
-     "shell.execute_reply": "2024-07-16T23:20:25.759558Z"
+     "iopub.execute_input": "2024-07-19T19:53:16.905085Z",
+     "iopub.status.busy": "2024-07-19T19:53:16.904736Z",
+     "iopub.status.idle": "2024-07-19T19:53:47.526275Z",
+     "shell.execute_reply": "2024-07-19T19:53:47.525276Z"
     },
     "papermill": {
-     "duration": 31.501525,
-     "end_time": "2024-07-16T23:20:25.763268",
+     "duration": 30.638057,
+     "end_time": "2024-07-19T19:53:47.528823",
      "exception": false,
-     "start_time": "2024-07-16T23:19:54.261743",
+     "start_time": "2024-07-19T19:53:16.890766",
      "status": "completed"
     },
     "tags": []
@@ -75,9 +75,9 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "2024-07-16 23:20:13.812067: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered\n",
-      "2024-07-16 23:20:13.812210: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered\n",
-      "2024-07-16 23:20:13.976380: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered\n"
+      "2024-07-19 19:53:36.837235: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered\n",
+      "2024-07-19 19:53:36.837365: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered\n",
+      "2024-07-19 19:53:36.972368: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered\n"
      ]
     }
    ],
@@ -87,14 +87,14 @@
     "import re\n",
     "import nltk\n",
     "from nltk.corpus import stopwords\n",
-    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn.model_selection import train_test_split, KFold\n",
     "from gensim.models import FastText\n",
-    "from transformers import BertTokenizer, TFBertModel, TFBertForSequenceClassification\n",
+    "from transformers import BertTokenizer, TFBertModel, TFBertForSequenceClassification, BertModel\n",
     "import tensorflow as tf\n",
     "from tensorflow.keras.layers import Input, Dense, Dropout, Concatenate, Embedding\n",
     "from tensorflow.keras.models import Model\n",
     "from tensorflow.keras.callbacks import EarlyStopping\n",
-    "from sklearn.metrics import accuracy_score, roc_auc_score\n",
+    "from sklearn.metrics import accuracy_score, roc_auc_score, precision_score, recall_score, f1_score, confusion_matrix\n",
     "from tensorflow.keras.preprocessing.text import Tokenizer\n",
     "from tensorflow.keras.preprocessing.sequence import pad_sequences\n",
     "import fasttext.util\n",
@@ -102,25 +102,26 @@
     "import torch\n",
     "import torch.nn as nn\n",
     "import torch.optim as optim\n",
-    "from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler"
+    "from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler\n",
+    "from sklearn.utils.class_weight import compute_class_weight"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "8a4a0bf3",
+   "id": "03c7d0f1",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:25.786386Z",
-     "iopub.status.busy": "2024-07-16T23:20:25.785667Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.347105Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.346056Z"
+     "iopub.execute_input": "2024-07-19T19:53:47.553323Z",
+     "iopub.status.busy": "2024-07-19T19:53:47.552643Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.024971Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.023782Z"
     },
     "papermill": {
-     "duration": 2.575808,
-     "end_time": "2024-07-16T23:20:28.349807",
+     "duration": 2.487454,
+     "end_time": "2024-07-19T19:53:50.027778",
      "exception": false,
-     "start_time": "2024-07-16T23:20:25.773999",
+     "start_time": "2024-07-19T19:53:47.540324",
      "status": "completed"
     },
     "tags": []
@@ -141,19 +142,19 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "d88bc658",
+   "id": "7359cdce",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.372377Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.371971Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.394014Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.392935Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.055737Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.055354Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.076292Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.075379Z"
     },
     "papermill": {
-     "duration": 0.035974,
-     "end_time": "2024-07-16T23:20:28.396271",
+     "duration": 0.036319,
+     "end_time": "2024-07-19T19:53:50.078332",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.360297",
+     "start_time": "2024-07-19T19:53:50.042013",
      "status": "completed"
     },
     "tags": []
@@ -266,19 +267,19 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "b98b2672",
+   "id": "1fad14ed",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.420287Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.419909Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.438570Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.437530Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.103549Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.102908Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.120951Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.120058Z"
     },
     "papermill": {
-     "duration": 0.032789,
-     "end_time": "2024-07-16T23:20:28.440721",
+     "duration": 0.032725,
+     "end_time": "2024-07-19T19:53:50.123153",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.407932",
+     "start_time": "2024-07-19T19:53:50.090428",
      "status": "completed"
     },
     "tags": []
@@ -368,19 +369,19 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "bd201043",
+   "id": "5b67e0f3",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.463719Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.463300Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.478598Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.477477Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.148531Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.147996Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.162900Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.161943Z"
     },
     "papermill": {
-     "duration": 0.029403,
-     "end_time": "2024-07-16T23:20:28.480713",
+     "duration": 0.029982,
+     "end_time": "2024-07-19T19:53:50.165340",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.451310",
+     "start_time": "2024-07-19T19:53:50.135358",
      "status": "completed"
     },
     "tags": []
@@ -507,19 +508,19 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "ec10bbe1",
+   "id": "fd538d41",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.504106Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.503704Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.571925Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.570723Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.193185Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.192848Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.255605Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.254551Z"
     },
     "papermill": {
-     "duration": 0.082513,
-     "end_time": "2024-07-16T23:20:28.574200",
+     "duration": 0.079167,
+     "end_time": "2024-07-19T19:53:50.257882",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.491687",
+     "start_time": "2024-07-19T19:53:50.178715",
      "status": "completed"
     },
     "tags": []
@@ -609,19 +610,19 @@
   {
    "cell_type": "code",
    "execution_count": 8,
-   "id": "6d8d2ca4",
+   "id": "0a95ef93",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.598573Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.597639Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.610139Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.609103Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.285320Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.284938Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.297621Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.296614Z"
     },
     "papermill": {
-     "duration": 0.026894,
-     "end_time": "2024-07-16T23:20:28.612210",
+     "duration": 0.028843,
+     "end_time": "2024-07-19T19:53:50.299708",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.585316",
+     "start_time": "2024-07-19T19:53:50.270865",
      "status": "completed"
     },
     "tags": []
@@ -741,19 +742,19 @@
   {
    "cell_type": "code",
    "execution_count": 9,
-   "id": "dcbb7f8c",
+   "id": "ebac0545",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.637220Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.636252Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.653010Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.651851Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.326359Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.326055Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.340267Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.339329Z"
     },
     "papermill": {
-     "duration": 0.032327,
-     "end_time": "2024-07-16T23:20:28.656017",
+     "duration": 0.030134,
+     "end_time": "2024-07-19T19:53:50.342683",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.623690",
+     "start_time": "2024-07-19T19:53:50.312549",
      "status": "completed"
     },
     "tags": []
@@ -844,19 +845,19 @@
   {
    "cell_type": "code",
    "execution_count": 10,
-   "id": "bf64272f",
+   "id": "86ccb8fc",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.681971Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.681510Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.693264Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.692138Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.368594Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.368303Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.378996Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.378124Z"
     },
     "papermill": {
-     "duration": 0.026944,
-     "end_time": "2024-07-16T23:20:28.695454",
+     "duration": 0.025908,
+     "end_time": "2024-07-19T19:53:50.380982",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.668510",
+     "start_time": "2024-07-19T19:53:50.355074",
      "status": "completed"
     },
     "tags": []
@@ -957,19 +958,19 @@
   {
    "cell_type": "code",
    "execution_count": 11,
-   "id": "af8271d8",
+   "id": "5f44b7bd",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.720548Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.720136Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.732329Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.731134Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.407538Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.407257Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.419057Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.418212Z"
     },
     "papermill": {
-     "duration": 0.027425,
-     "end_time": "2024-07-16T23:20:28.734568",
+     "duration": 0.027672,
+     "end_time": "2024-07-19T19:53:50.421323",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.707143",
+     "start_time": "2024-07-19T19:53:50.393651",
      "status": "completed"
     },
     "tags": []
@@ -1066,19 +1067,19 @@
   {
    "cell_type": "code",
    "execution_count": 12,
-   "id": "bae7c9fa",
+   "id": "be541364",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.760374Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.759435Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.770003Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.768870Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.449447Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.448938Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.458316Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.457431Z"
     },
     "papermill": {
-     "duration": 0.026217,
-     "end_time": "2024-07-16T23:20:28.772740",
+     "duration": 0.025085,
+     "end_time": "2024-07-19T19:53:50.460432",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.746523",
+     "start_time": "2024-07-19T19:53:50.435347",
      "status": "completed"
     },
     "tags": []
@@ -1173,19 +1174,19 @@
   {
    "cell_type": "code",
    "execution_count": 13,
-   "id": "11763791",
+   "id": "b48ecab2",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.800065Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.799666Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.811397Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.810196Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.489342Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.489031Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.499232Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.498415Z"
     },
     "papermill": {
-     "duration": 0.028112,
-     "end_time": "2024-07-16T23:20:28.813770",
+     "duration": 0.02638,
+     "end_time": "2024-07-19T19:53:50.501374",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.785658",
+     "start_time": "2024-07-19T19:53:50.474994",
      "status": "completed"
     },
     "tags": []
@@ -1281,19 +1282,19 @@
   {
    "cell_type": "code",
    "execution_count": 14,
-   "id": "5b2f4c61",
+   "id": "73ff5b85",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.840911Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.839927Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.857312Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.856292Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.532644Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.532316Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.550172Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.549250Z"
     },
     "papermill": {
-     "duration": 0.033282,
-     "end_time": "2024-07-16T23:20:28.859435",
+     "duration": 0.035824,
+     "end_time": "2024-07-19T19:53:50.552213",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.826153",
+     "start_time": "2024-07-19T19:53:50.516389",
      "status": "completed"
     },
     "tags": []
@@ -1441,19 +1442,19 @@
   {
    "cell_type": "code",
    "execution_count": 15,
-   "id": "12e5a9b0",
+   "id": "e933a85f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.886645Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.886205Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.903898Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.902626Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.582995Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.582018Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.602979Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.602009Z"
     },
     "papermill": {
-     "duration": 0.033939,
-     "end_time": "2024-07-16T23:20:28.906259",
+     "duration": 0.039417,
+     "end_time": "2024-07-19T19:53:50.605551",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.872320",
+     "start_time": "2024-07-19T19:53:50.566134",
      "status": "completed"
     },
     "tags": []
@@ -1523,6 +1524,12 @@
        "      <td>...</td>\n",
        "    </tr>\n",
        "    <tr>\n",
+       "      <th>2516</th>\n",
+       "      <td>Lovely little zoo. So much to see and do consi...</td>\n",
+       "      <td>2021-07-31T09:56:43.182Z</td>\n",
+       "      <td>5.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
        "      <th>2517</th>\n",
        "      <td>Free entry as a member of Chester Zoo, nice va...</td>\n",
        "      <td>2021-07-30T22:31:58.770Z</td>\n",
@@ -1546,15 +1553,9 @@
        "      <td>2021-07-29T11:38:11.869Z</td>\n",
        "      <td>1.0</td>\n",
        "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2527</th>\n",
-       "      <td>Loved it</td>\n",
-       "      <td>2021-07-28T16:28:15.756Z</td>\n",
-       "      <td>5.0</td>\n",
-       "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
-       "<p>1669 rows × 3 columns</p>\n",
+       "<p>1606 rows × 3 columns</p>\n",
        "</div>"
       ],
       "text/plain": [
@@ -1565,11 +1566,11 @@
        "3     A really good small zoo that takes around two ...   \n",
        "4     Amazing little hidden gem of a zoo. Worth ever...   \n",
        "...                                                 ...   \n",
+       "2516  Lovely little zoo. So much to see and do consi...   \n",
        "2517  Free entry as a member of Chester Zoo, nice va...   \n",
        "2520  2nd time we've been looks run down not a lot t...   \n",
        "2523                                   Did not go there   \n",
        "2524  The zoo was run down overgrown with barely any...   \n",
-       "2527                                           Loved it   \n",
        "\n",
        "                  written_date  rating  \n",
        "0         2024-07-05T19:52:02Z     NaN  \n",
@@ -1578,13 +1579,13 @@
        "3         2024-07-05T19:52:02Z     NaN  \n",
        "4         2024-07-05T19:52:02Z     NaN  \n",
        "...                        ...     ...  \n",
+       "2516  2021-07-31T09:56:43.182Z     5.0  \n",
        "2517  2021-07-30T22:31:58.770Z     3.0  \n",
        "2520  2021-07-30T10:01:24.572Z     1.0  \n",
        "2523  2021-07-29T12:53:05.202Z     1.0  \n",
        "2524  2021-07-29T11:38:11.869Z     1.0  \n",
-       "2527  2021-07-28T16:28:15.756Z     5.0  \n",
        "\n",
-       "[1669 rows x 3 columns]"
+       "[1606 rows x 3 columns]"
       ]
      },
      "execution_count": 15,
@@ -1595,25 +1596,26 @@
    "source": [
     "newquay = newquay.dropna(subset=['review'])\n",
     "newquay = newquay[newquay['review'] != '']\n",
+    "newquay = newquay.drop_duplicates(subset=['review'])\n",
     "newquay"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 16,
-   "id": "e4ed8621",
+   "id": "c5737f1c",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.935192Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.934814Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.947110Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.945890Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.636440Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.636157Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.647062Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.646143Z"
     },
     "papermill": {
-     "duration": 0.029798,
-     "end_time": "2024-07-16T23:20:28.949454",
+     "duration": 0.028299,
+     "end_time": "2024-07-19T19:53:50.649350",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.919656",
+     "start_time": "2024-07-19T19:53:50.621051",
      "status": "completed"
     },
     "tags": []
@@ -1714,19 +1716,19 @@
   {
    "cell_type": "code",
    "execution_count": 17,
-   "id": "a909663d",
+   "id": "f8afa136",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:28.977321Z",
-     "iopub.status.busy": "2024-07-16T23:20:28.976928Z",
-     "iopub.status.idle": "2024-07-16T23:20:28.989320Z",
-     "shell.execute_reply": "2024-07-16T23:20:28.988269Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.682585Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.681777Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.694484Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.693455Z"
     },
     "papermill": {
-     "duration": 0.028989,
-     "end_time": "2024-07-16T23:20:28.991457",
+     "duration": 0.030974,
+     "end_time": "2024-07-19T19:53:50.696632",
      "exception": false,
-     "start_time": "2024-07-16T23:20:28.962468",
+     "start_time": "2024-07-19T19:53:50.665658",
      "status": "completed"
     },
     "tags": []
@@ -1816,19 +1818,19 @@
   {
    "cell_type": "code",
    "execution_count": 18,
-   "id": "185b6d25",
+   "id": "e9e6a886",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:29.019587Z",
-     "iopub.status.busy": "2024-07-16T23:20:29.019170Z",
-     "iopub.status.idle": "2024-07-16T23:20:29.029476Z",
-     "shell.execute_reply": "2024-07-16T23:20:29.028523Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.728446Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.728141Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.738726Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.737800Z"
     },
     "papermill": {
-     "duration": 0.026942,
-     "end_time": "2024-07-16T23:20:29.031650",
+     "duration": 0.028653,
+     "end_time": "2024-07-19T19:53:50.740776",
      "exception": false,
-     "start_time": "2024-07-16T23:20:29.004708",
+     "start_time": "2024-07-19T19:53:50.712123",
      "status": "completed"
     },
     "tags": []
@@ -1923,19 +1925,19 @@
   {
    "cell_type": "code",
    "execution_count": 19,
-   "id": "d76e0ef7",
+   "id": "1f54a810",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:29.060547Z",
-     "iopub.status.busy": "2024-07-16T23:20:29.060162Z",
-     "iopub.status.idle": "2024-07-16T23:20:29.071133Z",
-     "shell.execute_reply": "2024-07-16T23:20:29.070134Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.771737Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.771426Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.782025Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.781159Z"
     },
     "papermill": {
-     "duration": 0.027755,
-     "end_time": "2024-07-16T23:20:29.073225",
+     "duration": 0.028453,
+     "end_time": "2024-07-19T19:53:50.784208",
      "exception": false,
-     "start_time": "2024-07-16T23:20:29.045470",
+     "start_time": "2024-07-19T19:53:50.755755",
      "status": "completed"
     },
     "tags": []
@@ -2031,19 +2033,19 @@
   {
    "cell_type": "code",
    "execution_count": 20,
-   "id": "e7ae4076",
+   "id": "68646426",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:29.102320Z",
-     "iopub.status.busy": "2024-07-16T23:20:29.101618Z",
-     "iopub.status.idle": "2024-07-16T23:20:29.118033Z",
-     "shell.execute_reply": "2024-07-16T23:20:29.116967Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.816032Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.815717Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.833617Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.832627Z"
     },
     "papermill": {
-     "duration": 0.033181,
-     "end_time": "2024-07-16T23:20:29.120081",
+     "duration": 0.037229,
+     "end_time": "2024-07-19T19:53:50.836544",
      "exception": false,
-     "start_time": "2024-07-16T23:20:29.086900",
+     "start_time": "2024-07-19T19:53:50.799315",
      "status": "completed"
     },
     "tags": []
@@ -2191,19 +2193,19 @@
   {
    "cell_type": "code",
    "execution_count": 21,
-   "id": "5a15594a",
+   "id": "5bcf473b",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:29.149384Z",
-     "iopub.status.busy": "2024-07-16T23:20:29.148995Z",
-     "iopub.status.idle": "2024-07-16T23:20:29.165562Z",
-     "shell.execute_reply": "2024-07-16T23:20:29.164579Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.870637Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.870325Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.888986Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.888157Z"
     },
     "papermill": {
-     "duration": 0.033812,
-     "end_time": "2024-07-16T23:20:29.167733",
+     "duration": 0.037336,
+     "end_time": "2024-07-19T19:53:50.891077",
      "exception": false,
-     "start_time": "2024-07-16T23:20:29.133921",
+     "start_time": "2024-07-19T19:53:50.853741",
      "status": "completed"
     },
     "tags": []
@@ -2273,6 +2275,12 @@
        "      <td>...</td>\n",
        "    </tr>\n",
        "    <tr>\n",
+       "      <th>2810</th>\n",
+       "      <td>An excellent zoo which wasn't too busy. We enj...</td>\n",
+       "      <td>2022-08-02T16:04:34.509Z</td>\n",
+       "      <td>5.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
        "      <th>2812</th>\n",
        "      <td>A bit disappointing unfortunately. Lots of enc...</td>\n",
        "      <td>2022-08-02T07:43:39.577Z</td>\n",
@@ -2291,12 +2299,6 @@
        "      <td>5.0</td>\n",
        "    </tr>\n",
        "    <tr>\n",
-       "      <th>2816</th>\n",
-       "      <td>It is a lovely zoo to walk around, be prepared...</td>\n",
-       "      <td>2022-08-01T16:43:14.403Z</td>\n",
-       "      <td>4.0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
        "      <th>2819</th>\n",
        "      <td>Beau, grand, cela permet de passer une agréabl...</td>\n",
        "      <td>2022-08-01T13:43:33.095Z</td>\n",
@@ -2304,7 +2306,7 @@
        "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
-       "<p>2102 rows × 3 columns</p>\n",
+       "<p>2063 rows × 3 columns</p>\n",
        "</div>"
       ],
       "text/plain": [
@@ -2315,10 +2317,10 @@
        "3     A fantastic day out for all ages!.. I absolute...   \n",
        "4     No much animals The zoo is really nice and qui...   \n",
        "...                                                 ...   \n",
+       "2810  An excellent zoo which wasn't too busy. We enj...   \n",
        "2812  A bit disappointing unfortunately. Lots of enc...   \n",
        "2813  Nice family day out. Plenty of monkeys. The go...   \n",
        "2814  Amazing a full day our 2 boys loved seeing the...   \n",
-       "2816  It is a lovely zoo to walk around, be prepared...   \n",
        "2819  Beau, grand, cela permet de passer une agréabl...   \n",
        "\n",
        "                  written_date  rating  \n",
@@ -2328,13 +2330,13 @@
        "3                 July 6, 2024     NaN  \n",
        "4                 July 5, 2024     NaN  \n",
        "...                        ...     ...  \n",
+       "2810  2022-08-02T16:04:34.509Z     5.0  \n",
        "2812  2022-08-02T07:43:39.577Z     3.0  \n",
        "2813  2022-08-01T19:03:56.649Z     4.0  \n",
        "2814  2022-08-01T17:57:16.637Z     5.0  \n",
-       "2816  2022-08-01T16:43:14.403Z     4.0  \n",
        "2819  2022-08-01T13:43:33.095Z     4.0  \n",
        "\n",
-       "[2102 rows x 3 columns]"
+       "[2063 rows x 3 columns]"
       ]
      },
      "execution_count": 21,
@@ -2345,79 +2347,180 @@
    "source": [
     "paignton = paignton.dropna(subset=['review'])\n",
     "paignton = paignton[paignton['review'] != '']\n",
+    "paignton = paignton.drop_duplicates(subset=['review'])\n",
     "paignton"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 22,
-   "id": "43afb524",
+   "id": "a6c53c31",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:29.197411Z",
-     "iopub.status.busy": "2024-07-16T23:20:29.196995Z",
-     "iopub.status.idle": "2024-07-16T23:20:29.201602Z",
-     "shell.execute_reply": "2024-07-16T23:20:29.200477Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.924668Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.924093Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.930621Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.929666Z"
     },
     "papermill": {
-     "duration": 0.022085,
-     "end_time": "2024-07-16T23:20:29.203830",
+     "duration": 0.025414,
+     "end_time": "2024-07-19T19:53:50.932629",
      "exception": false,
-     "start_time": "2024-07-16T23:20:29.181745",
+     "start_time": "2024-07-19T19:53:50.907215",
      "status": "completed"
     },
     "tags": []
    },
    "outputs": [],
    "source": [
-    "# # FastText embeddings\n",
-    "# fasttext.util.download_model('en', if_exists='ignore')\n",
-    "# ft = fasttext.load_model('cc.en.300.bin')"
+    "# Add source column and preprocess text\n",
+    "disney['source'] = 'disney'\n",
+    "universal['source'] = 'universal'\n",
+    "museum['source'] = 'museum'"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 23,
-   "id": "42174305",
+   "id": "1272cd60",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:20:29.234151Z",
-     "iopub.status.busy": "2024-07-16T23:20:29.233755Z",
-     "iopub.status.idle": "2024-07-16T23:27:42.511472Z",
-     "shell.execute_reply": "2024-07-16T23:27:42.510330Z"
+     "iopub.execute_input": "2024-07-19T19:53:50.965484Z",
+     "iopub.status.busy": "2024-07-19T19:53:50.964720Z",
+     "iopub.status.idle": "2024-07-19T19:53:50.977526Z",
+     "shell.execute_reply": "2024-07-19T19:53:50.976549Z"
     },
     "papermill": {
-     "duration": 433.295924,
-     "end_time": "2024-07-16T23:27:42.514307",
+     "duration": 0.031557,
+     "end_time": "2024-07-19T19:53:50.979690",
      "exception": false,
-     "start_time": "2024-07-16T23:20:29.218383",
+     "start_time": "2024-07-19T19:53:50.948133",
      "status": "completed"
     },
     "tags": []
    },
    "outputs": [],
    "source": [
-    "# Load the FastText model from .vec file\n",
-    "fasttext_model_path = '/kaggle/input/fasttext-crawl-300d-2m/crawl-300d-2M.vec'\n",
-    "ft = KeyedVectors.load_word2vec_format(fasttext_model_path)"
+    "combined_df = pd.concat([disney, universal, museum])"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 24,
-   "id": "0c102ff3",
+   "id": "02a63580",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:27:42.545039Z",
-     "iopub.status.busy": "2024-07-16T23:27:42.544626Z",
-     "iopub.status.idle": "2024-07-16T23:27:52.569852Z",
-     "shell.execute_reply": "2024-07-16T23:27:52.568734Z"
+     "iopub.execute_input": "2024-07-19T19:53:51.011922Z",
+     "iopub.status.busy": "2024-07-19T19:53:51.011079Z",
+     "iopub.status.idle": "2024-07-19T20:03:55.955018Z",
+     "shell.execute_reply": "2024-07-19T20:03:55.954055Z"
     },
     "papermill": {
-     "duration": 10.04343,
-     "end_time": "2024-07-16T23:27:52.572370",
+     "duration": 604.962671,
+     "end_time": "2024-07-19T20:03:55.957653",
      "exception": false,
-     "start_time": "2024-07-16T23:27:42.528940",
+     "start_time": "2024-07-19T19:53:50.994982",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "05ee38faf2964c6185eebac259ba5cc2",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "tokenizer_config.json:   0%|          | 0.00/48.0 [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "7087582f274e4bb8a13bbc20a8ed3644",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "vocab.txt:   0%|          | 0.00/232k [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "78f9453385574050888916cb659ae49c",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "tokenizer.json:   0%|          | 0.00/466k [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "4118493854ab472fbf5a4ff8edce31b2",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "config.json:   0%|          | 0.00/570 [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "0ee3efb1fc07493b8e3ad44134db0a4a",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "model.safetensors:   0%|          | 0.00/440M [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# Load the FastText model from .vec file\n",
+    "fasttext_model_path = '/kaggle/input/fasttext-crawl-300d-2m/crawl-300d-2M.vec'\n",
+    "ft = KeyedVectors.load_word2vec_format(fasttext_model_path)\n",
+    "\n",
+    "tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')\n",
+    "bert_model = BertModel.from_pretrained('bert-base-uncased')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "0e136528",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-19T20:03:55.997301Z",
+     "iopub.status.busy": "2024-07-19T20:03:55.996809Z",
+     "iopub.status.idle": "2024-07-19T20:04:10.248240Z",
+     "shell.execute_reply": "2024-07-19T20:04:10.247429Z"
+    },
+    "papermill": {
+     "duration": 14.276752,
+     "end_time": "2024-07-19T20:04:10.250731",
+     "exception": false,
+     "start_time": "2024-07-19T20:03:55.973979",
      "status": "completed"
     },
     "tags": []
@@ -2445,16 +2548,25 @@
     "    text = ' '.join([word for word in text.split() if word not in stop_words])\n",
     "    return text\n",
     "\n",
-    "for df in [disney, universal, museum, paignton, newquay]:\n",
+    "for df in [combined_df, paignton, newquay]:\n",
     "    df['cleaned_review'] = df['review'].apply(preprocess_text)\n",
     "    df['sentiment'] = df['rating'].apply(lambda x: 1 if x >= 4 else 0)\n",
-    "    \n",
+    "\n",
     "# def get_embedding(text, ft_model):\n",
     "#     words = text.split()\n",
-    "#     word_vecs = [ft_model.get_word_vector(word) for word in words]\n",
-    "#     return np.mean(word_vecs, axis=0)\n",
+    "#     word_vecs = [ft_model[word] for word in words if word in ft_model]\n",
+    "#     if word_vecs:\n",
+    "#         return np.mean(word_vecs, axis=0)\n",
+    "#     else:\n",
+    "#         return np.zeros(ft_model.vector_size)\n",
+    "    \n",
+    "def get_bert_embedding(text, tokenizer, model):\n",
+    "    inputs = tokenizer(text, return_tensors='pt', truncation=True, padding=True)\n",
+    "    outputs = model(**inputs)\n",
+    "    last_hidden_states = outputs.last_hidden_state\n",
+    "    return last_hidden_states.mean(dim=1).squeeze().detach().numpy()\n",
     "\n",
-    "def get_embedding(text, ft_model):\n",
+    "def get_fasttext_embedding(text, ft_model):\n",
     "    words = text.split()\n",
     "    word_vecs = [ft_model[word] for word in words if word in ft_model]\n",
     "    if word_vecs:\n",
@@ -2462,101 +2574,95 @@
     "    else:\n",
     "        return np.zeros(ft_model.vector_size)\n",
     "\n",
+    "# # Preprocess reviews\n",
+    "# def preprocess_reviews(df, ft_model):\n",
+    "#     df['review_embedding'] = df['review'].apply(lambda x: get_embedding(str(x), ft_model))\n",
+    "#     return df\n",
+    "\n",
     "# Preprocess reviews\n",
-    "def preprocess_reviews(df, ft_model):\n",
-    "    df['review_embedding'] = df['review'].apply(lambda x: get_embedding(str(x), ft_model))\n",
+    "def preprocess_reviews(df, ft_model, tokenizer, bert_model):\n",
+    "    df['fasttext_embedding'] = df['cleaned_review'].apply(lambda x: get_fasttext_embedding(str(x), ft_model))\n",
+    "    df['bert_embedding'] = df['cleaned_review'].apply(lambda x: get_bert_embedding(str(x), tokenizer, bert_model))\n",
+    "    df['combined_embedding'] = df.apply(lambda row: np.concatenate((row['fasttext_embedding'], row['bert_embedding'])), axis=1)\n",
     "    return df\n",
     "\n",
     "# Extract features and labels\n",
     "def extract_features_labels(df):\n",
-    "    X = np.stack(df['review_embedding'].values)\n",
+    "    X = np.stack(df['combined_embedding'].values)\n",
     "    y = df['sentiment'].values\n",
-    "    return X, y\n",
-    "\n",
-    "# # Split datasets into train and test sets\n",
-    "# def split_data(df):\n",
-    "#     X_train, X_test, y_train, y_test = train_test_split(df['cleaned_review'], df['sentiment'], test_size=0.2, random_state=42)\n",
-    "#     return X_train, X_test, y_train, y_test\n",
-    "\n",
-    "# X_train1, X_test1, y_train1, y_test1 = split_data(disney)\n",
-    "# X_train2, X_test2, y_train2, y_test2 = split_data(universal)\n",
-    "# X_train3, X_test3, y_train3, y_test3 = split_data(museum)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 25,
-   "id": "350536ee",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:27:52.603714Z",
-     "iopub.status.busy": "2024-07-16T23:27:52.603324Z",
-     "iopub.status.idle": "2024-07-16T23:28:28.271626Z",
-     "shell.execute_reply": "2024-07-16T23:28:28.270437Z"
-    },
-    "papermill": {
-     "duration": 35.687159,
-     "end_time": "2024-07-16T23:28:28.274239",
-     "exception": false,
-     "start_time": "2024-07-16T23:27:52.587080",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "disney = preprocess_reviews(disney, ft)\n",
-    "universal = preprocess_reviews(universal, ft)\n",
-    "museum = preprocess_reviews(museum, ft)\n",
-    "paignton = preprocess_reviews(paignton, ft)\n",
-    "newquay = preprocess_reviews(newquay, ft)"
+    "    return X, y"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 26,
-   "id": "c58590d1",
+   "id": "8cbcf7d9",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:28:28.305048Z",
-     "iopub.status.busy": "2024-07-16T23:28:28.304635Z",
-     "iopub.status.idle": "2024-07-16T23:28:28.534651Z",
-     "shell.execute_reply": "2024-07-16T23:28:28.533309Z"
+     "iopub.execute_input": "2024-07-19T20:04:10.334045Z",
+     "iopub.status.busy": "2024-07-19T20:04:10.333689Z",
+     "iopub.status.idle": "2024-07-19T23:28:48.349682Z",
+     "shell.execute_reply": "2024-07-19T23:28:48.348714Z"
     },
     "papermill": {
-     "duration": 0.24794,
-     "end_time": "2024-07-16T23:28:28.537118",
+     "duration": 12278.084072,
+     "end_time": "2024-07-19T23:28:48.352751",
      "exception": false,
-     "start_time": "2024-07-16T23:28:28.289178",
+     "start_time": "2024-07-19T20:04:10.268679",
      "status": "completed"
     },
     "tags": []
    },
    "outputs": [],
    "source": [
-    "X_disney, y_disney = extract_features_labels(disney)\n",
-    "X_universal, y_universal = extract_features_labels(universal)\n",
-    "X_museum, y_museum = extract_features_labels(museum)\n",
+    "combined_df = preprocess_reviews(combined_df, ft, tokenizer, bert_model)\n",
+    "paignton = preprocess_reviews(paignton, ft, tokenizer, bert_model)\n",
+    "newquay = preprocess_reviews(newquay, ft, tokenizer, bert_model)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "9a3bd0e0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-19T23:28:48.388377Z",
+     "iopub.status.busy": "2024-07-19T23:28:48.388001Z",
+     "iopub.status.idle": "2024-07-19T23:28:48.674778Z",
+     "shell.execute_reply": "2024-07-19T23:28:48.673869Z"
+    },
+    "papermill": {
+     "duration": 0.306688,
+     "end_time": "2024-07-19T23:28:48.677151",
+     "exception": false,
+     "start_time": "2024-07-19T23:28:48.370463",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "X, y = extract_features_labels(combined_df)\n",
     "X_paignton, y_paignton = extract_features_labels(paignton)\n",
     "X_newquay, y_newquay = extract_features_labels(newquay)"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 27,
-   "id": "e18020fb",
+   "execution_count": 28,
+   "id": "29eb1d04",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:28:28.567702Z",
-     "iopub.status.busy": "2024-07-16T23:28:28.567287Z",
-     "iopub.status.idle": "2024-07-16T23:28:28.573854Z",
-     "shell.execute_reply": "2024-07-16T23:28:28.572800Z"
+     "iopub.execute_input": "2024-07-19T23:28:48.711874Z",
+     "iopub.status.busy": "2024-07-19T23:28:48.711504Z",
+     "iopub.status.idle": "2024-07-19T23:28:48.717990Z",
+     "shell.execute_reply": "2024-07-19T23:28:48.717057Z"
     },
     "papermill": {
-     "duration": 0.024612,
-     "end_time": "2024-07-16T23:28:28.576302",
+     "duration": 0.025814,
+     "end_time": "2024-07-19T23:28:48.719970",
      "exception": false,
-     "start_time": "2024-07-16T23:28:28.551690",
+     "start_time": "2024-07-19T23:28:48.694156",
      "status": "completed"
     },
     "tags": []
@@ -2578,106 +2684,95 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 28,
-   "id": "aff1ca5a",
+   "execution_count": 29,
+   "id": "6fdb2059",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:28:28.608443Z",
-     "iopub.status.busy": "2024-07-16T23:28:28.607469Z",
-     "iopub.status.idle": "2024-07-16T23:28:28.613068Z",
-     "shell.execute_reply": "2024-07-16T23:28:28.611999Z"
+     "iopub.execute_input": "2024-07-19T23:28:48.755516Z",
+     "iopub.status.busy": "2024-07-19T23:28:48.755171Z",
+     "iopub.status.idle": "2024-07-19T23:28:48.759943Z",
+     "shell.execute_reply": "2024-07-19T23:28:48.759051Z"
     },
     "papermill": {
-     "duration": 0.02323,
-     "end_time": "2024-07-16T23:28:28.615249",
+     "duration": 0.025534,
+     "end_time": "2024-07-19T23:28:48.762208",
      "exception": false,
-     "start_time": "2024-07-16T23:28:28.592019",
+     "start_time": "2024-07-19T23:28:48.736674",
      "status": "completed"
     },
     "tags": []
    },
    "outputs": [],
    "source": [
-    "disney_dataset = ReviewDataset(X_disney, y_disney)\n",
-    "universal_dataset = ReviewDataset(X_universal, y_universal)\n",
-    "museum_dataset = ReviewDataset(X_museum, y_museum)\n",
+    "combined_dataset = ReviewDataset(X, y)\n",
     "paignton_dataset = ReviewDataset(X_paignton, y_paignton)\n",
     "newquay_dataset = ReviewDataset(X_newquay, y_newquay)"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 29,
-   "id": "f015be97",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:28:28.645517Z",
-     "iopub.status.busy": "2024-07-16T23:28:28.645116Z",
-     "iopub.status.idle": "2024-07-16T23:28:28.675467Z",
-     "shell.execute_reply": "2024-07-16T23:28:28.674549Z"
-    },
-    "papermill": {
-     "duration": 0.048276,
-     "end_time": "2024-07-16T23:28:28.677736",
-     "exception": false,
-     "start_time": "2024-07-16T23:28:28.629460",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "# Weighted Random Sampler\n",
-    "weights = [0.3 / len(disney_dataset), 0.3 / len(universal_dataset), 0.4 / len(museum_dataset)]\n",
-    "sampler = WeightedRandomSampler(weights=[weights[0]] * len(disney_dataset) + \n",
-    "                                       [weights[1]] * len(universal_dataset) + \n",
-    "                                       [weights[2]] * len(museum_dataset), \n",
-    "                                num_samples=len(disney_dataset) + len(universal_dataset) + len(museum_dataset), replacement=True)"
-   ]
-  },
-  {
-   "cell_type": "code",
    "execution_count": 30,
-   "id": "da3d6ba9",
+   "id": "e4d774a5",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:28:28.707953Z",
-     "iopub.status.busy": "2024-07-16T23:28:28.707549Z",
-     "iopub.status.idle": "2024-07-16T23:28:28.713271Z",
-     "shell.execute_reply": "2024-07-16T23:28:28.712082Z"
+     "iopub.execute_input": "2024-07-19T23:28:48.798906Z",
+     "iopub.status.busy": "2024-07-19T23:28:48.798556Z",
+     "iopub.status.idle": "2024-07-19T23:28:48.899477Z",
+     "shell.execute_reply": "2024-07-19T23:28:48.898391Z"
     },
     "papermill": {
-     "duration": 0.023703,
-     "end_time": "2024-07-16T23:28:28.715641",
+     "duration": 0.122222,
+     "end_time": "2024-07-19T23:28:48.901966",
      "exception": false,
-     "start_time": "2024-07-16T23:28:28.691938",
+     "start_time": "2024-07-19T23:28:48.779744",
      "status": "completed"
     },
     "tags": []
    },
    "outputs": [],
    "source": [
-    "# Combine datasets\n",
-    "combined_dataset = torch.utils.data.ConcatDataset([disney_dataset, universal_dataset, museum_dataset])\n",
-    "combined_loader = DataLoader(combined_dataset, batch_size=32, sampler=sampler, shuffle=False)"
+    "# Calculate class weights\n",
+    "class_sample_count = np.array([len(np.where(y == t)[0]) for t in np.unique(y)])\n",
+    "class_weights = 1. / class_sample_count\n",
+    "sample_class_weights = np.array([class_weights[t] for t in y])\n",
+    "\n",
+    "# Create dataset-specific weights\n",
+    "dataset_weights = {\n",
+    "    'disney': 0.4 / len(disney),\n",
+    "    'universal': 0.4 / len(universal),\n",
+    "    'museum': 0.2 / len(museum)\n",
+    "}\n",
+    "\n",
+    "# Create a list to hold the dataset-specific weights for each sample\n",
+    "sample_dataset_weights = []\n",
+    "\n",
+    "# Fill the dataset-specific weights\n",
+    "for idx, source in enumerate(combined_df['source']):\n",
+    "    sample_dataset_weights.append(dataset_weights[source])\n",
+    "\n",
+    "# Combine class weights and dataset weights\n",
+    "combined_weights = sample_class_weights * sample_dataset_weights\n",
+    "\n",
+    "# Create WeightedRandomSampler\n",
+    "sampler = WeightedRandomSampler(weights=combined_weights, num_samples=len(combined_weights), replacement=True)"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 31,
-   "id": "1f142a72",
+   "id": "4c8fb63d",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:28:28.745981Z",
-     "iopub.status.busy": "2024-07-16T23:28:28.745571Z",
-     "iopub.status.idle": "2024-07-16T23:28:28.752772Z",
-     "shell.execute_reply": "2024-07-16T23:28:28.751698Z"
+     "iopub.execute_input": "2024-07-19T23:28:49.015449Z",
+     "iopub.status.busy": "2024-07-19T23:28:49.015075Z",
+     "iopub.status.idle": "2024-07-19T23:28:49.026772Z",
+     "shell.execute_reply": "2024-07-19T23:28:49.025829Z"
     },
     "papermill": {
-     "duration": 0.024817,
-     "end_time": "2024-07-16T23:28:28.754896",
+     "duration": 0.032335,
+     "end_time": "2024-07-19T23:28:49.028981",
      "exception": false,
-     "start_time": "2024-07-16T23:28:28.730079",
+     "start_time": "2024-07-19T23:28:48.996646",
      "status": "completed"
     },
     "tags": []
@@ -2688,16 +2783,33 @@
     "class ANN(nn.Module):\n",
     "    def __init__(self):\n",
     "        super(ANN, self).__init__()\n",
-    "        self.layer1 = nn.Linear(300, 128)\n",
-    "        self.layer2 = nn.Linear(128, 64)\n",
+    "        self.layer1 = nn.Linear(1068, 128)\n",
+    "        self.gru = nn.GRU(128, 64, bidirectional=True, batch_first=True)\n",
+    "        self.lstm = nn.LSTM(128, 64, bidirectional=True, batch_first=True)\n",
+    "        self.layer2 = nn.Linear(256, 64)\n",
     "        self.layer3 = nn.Linear(64, 32)\n",
     "        self.layer4 = nn.Linear(32, 1)\n",
     "        self.relu = nn.ReLU()\n",
+    "        self.dropout = nn.Dropout(0.2)\n",
     "        self.sigmoid = nn.Sigmoid()\n",
     "\n",
     "    def forward(self, x):\n",
     "        x = self.relu(self.layer1(x))\n",
-    "        x = self.relu(self.layer2(x))\n",
+    "        x = self.dropout(x)\n",
+    "        \n",
+    "        # GRU layer\n",
+    "        gru_out, _ = self.gru(x.unsqueeze(0))  # gru_out: [1, batch_size, 128]\n",
+    "        gru_out = gru_out.squeeze(0)  # [batch_size, 128]\n",
+    "        \n",
+    "        # LSTM layer\n",
+    "        lstm_out, _ = self.lstm(x.unsqueeze(0))  # lstm_out: [1, batch_size, 128]\n",
+    "        lstm_out = lstm_out.squeeze(0)  # [batch_size, 128]\n",
+    "        \n",
+    "         # Concatenate GRU and LSTM outputs\n",
+    "        combined_out = torch.cat((gru_out, lstm_out), dim=1)  # [batch_size, 256]\n",
+    "\n",
+    "        x = self.relu(self.layer2(combined_out))\n",
+    "        x = self.dropout(x)\n",
     "        x = self.relu(self.layer3(x))\n",
     "        x = self.sigmoid(self.layer4(x))\n",
     "        return x"
@@ -2706,47 +2818,78 @@
   {
    "cell_type": "code",
    "execution_count": 32,
-   "id": "3b959f87",
+   "id": "f690adc7",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:28:28.785554Z",
-     "iopub.status.busy": "2024-07-16T23:28:28.785145Z",
-     "iopub.status.idle": "2024-07-16T23:28:29.546133Z",
-     "shell.execute_reply": "2024-07-16T23:28:29.544918Z"
+     "iopub.execute_input": "2024-07-19T23:28:49.064172Z",
+     "iopub.status.busy": "2024-07-19T23:28:49.063860Z",
+     "iopub.status.idle": "2024-07-19T23:28:49.073826Z",
+     "shell.execute_reply": "2024-07-19T23:28:49.072933Z"
     },
     "papermill": {
-     "duration": 0.779504,
-     "end_time": "2024-07-16T23:28:29.548793",
+     "duration": 0.029738,
+     "end_time": "2024-07-19T23:28:49.075900",
      "exception": false,
-     "start_time": "2024-07-16T23:28:28.769289",
+     "start_time": "2024-07-19T23:28:49.046162",
      "status": "completed"
     },
     "tags": []
    },
    "outputs": [],
    "source": [
-    "# Initialize the model, loss function and optimizer\n",
-    "model = ANN()\n",
-    "criterion = nn.BCELoss()\n",
-    "optimizer = optim.Adam(model.parameters(), lr=0.001)"
+    "# Function for training the model\n",
+    "def train_model(model, criterion, optimizer, train_loader, val_loader, num_epochs=10, patience=3):\n",
+    "    best_loss = float('inf')\n",
+    "    patience_counter = 0\n",
+    "    for epoch in range(num_epochs):\n",
+    "        model.train()\n",
+    "        train_loss = 0.0\n",
+    "        for reviews, sentiments in train_loader:\n",
+    "            optimizer.zero_grad()\n",
+    "            outputs = model(reviews).squeeze()\n",
+    "            loss = criterion(outputs, sentiments)\n",
+    "            loss.backward()\n",
+    "            optimizer.step()\n",
+    "            train_loss += loss.item()\n",
+    "        train_loss /= len(train_loader)\n",
+    "\n",
+    "        model.eval()\n",
+    "        val_loss = 0.0\n",
+    "        with torch.no_grad():\n",
+    "            for reviews, sentiments in val_loader:\n",
+    "                outputs = model(reviews).squeeze()\n",
+    "                loss = criterion(outputs, sentiments)\n",
+    "                val_loss += loss.item()\n",
+    "        val_loss /= len(val_loader)\n",
+    "\n",
+    "        print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')\n",
+    "\n",
+    "        if val_loss < best_loss:\n",
+    "            best_loss = val_loss\n",
+    "            patience_counter = 0\n",
+    "        else:\n",
+    "            patience_counter += 1\n",
+    "            if patience_counter >= patience:\n",
+    "                print(\"Early stopping triggered.\")\n",
+    "                break"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 33,
-   "id": "fe5a30a4",
+   "id": "1b956a02",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:28:29.579059Z",
-     "iopub.status.busy": "2024-07-16T23:28:29.578629Z",
-     "iopub.status.idle": "2024-07-16T23:29:50.743081Z",
-     "shell.execute_reply": "2024-07-16T23:29:50.741899Z"
+     "iopub.execute_input": "2024-07-19T23:28:49.114332Z",
+     "iopub.status.busy": "2024-07-19T23:28:49.113979Z",
+     "iopub.status.idle": "2024-07-20T00:41:24.919083Z",
+     "shell.execute_reply": "2024-07-20T00:41:24.917963Z"
     },
     "papermill": {
-     "duration": 81.182264,
-     "end_time": "2024-07-16T23:29:50.745452",
+     "duration": 4355.848382,
+     "end_time": "2024-07-20T00:41:24.943171",
      "exception": false,
-     "start_time": "2024-07-16T23:28:29.563188",
+     "start_time": "2024-07-19T23:28:49.094789",
      "status": "completed"
     },
     "tags": []
@@ -2756,55 +2899,115 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Epoch 1/10, Loss: 0.24695807695388794\n",
-      "Epoch 2/10, Loss: 0.12768076360225677\n",
-      "Epoch 3/10, Loss: 0.11864808946847916\n",
-      "Epoch 4/10, Loss: 0.03672102466225624\n",
-      "Epoch 5/10, Loss: 0.13287654519081116\n",
-      "Epoch 6/10, Loss: 0.029179053381085396\n",
-      "Epoch 7/10, Loss: 0.17614561319351196\n",
-      "Epoch 8/10, Loss: 0.1064322292804718\n",
-      "Epoch 9/10, Loss: 0.27089154720306396\n",
-      "Epoch 10/10, Loss: 0.36081698536872864\n"
+      "Starting training for a new fold\n",
+      "Epoch 1/10, Train Loss: 0.4034, Val Loss: 0.3917\n",
+      "Epoch 2/10, Train Loss: 0.3548, Val Loss: 0.4357\n",
+      "Epoch 3/10, Train Loss: 0.3400, Val Loss: 0.3450\n",
+      "Epoch 4/10, Train Loss: 0.3265, Val Loss: 0.4085\n",
+      "Epoch 5/10, Train Loss: 0.3163, Val Loss: 0.4374\n",
+      "Epoch 6/10, Train Loss: 0.3101, Val Loss: 0.3858\n",
+      "Early stopping triggered.\n",
+      "Starting training for a new fold\n",
+      "Epoch 1/10, Train Loss: 0.3998, Val Loss: 0.3611\n",
+      "Epoch 2/10, Train Loss: 0.3520, Val Loss: 0.4871\n",
+      "Epoch 3/10, Train Loss: 0.3331, Val Loss: 0.4226\n",
+      "Epoch 4/10, Train Loss: 0.3191, Val Loss: 0.4640\n",
+      "Early stopping triggered.\n",
+      "Starting training for a new fold\n",
+      "Epoch 1/10, Train Loss: 0.4061, Val Loss: 0.4564\n",
+      "Epoch 2/10, Train Loss: 0.3553, Val Loss: 0.3726\n",
+      "Epoch 3/10, Train Loss: 0.3403, Val Loss: 0.3264\n",
+      "Epoch 4/10, Train Loss: 0.3291, Val Loss: 0.3290\n",
+      "Epoch 5/10, Train Loss: 0.3185, Val Loss: 0.3652\n",
+      "Epoch 6/10, Train Loss: 0.3115, Val Loss: 0.2911\n",
+      "Epoch 7/10, Train Loss: 0.3046, Val Loss: 0.2867\n",
+      "Epoch 8/10, Train Loss: 0.3009, Val Loss: 0.3165\n",
+      "Epoch 9/10, Train Loss: 0.2946, Val Loss: 0.3647\n",
+      "Epoch 10/10, Train Loss: 0.2924, Val Loss: 0.2758\n",
+      "Starting training for a new fold\n",
+      "Epoch 1/10, Train Loss: 0.4016, Val Loss: 0.3853\n",
+      "Epoch 2/10, Train Loss: 0.3496, Val Loss: 0.4209\n",
+      "Epoch 3/10, Train Loss: 0.3320, Val Loss: 0.4063\n",
+      "Epoch 4/10, Train Loss: 0.3158, Val Loss: 0.5492\n",
+      "Early stopping triggered.\n",
+      "Starting training for a new fold\n",
+      "Epoch 1/10, Train Loss: 0.3995, Val Loss: 0.4195\n",
+      "Epoch 2/10, Train Loss: 0.3543, Val Loss: 0.3473\n",
+      "Epoch 3/10, Train Loss: 0.3371, Val Loss: 0.3490\n",
+      "Epoch 4/10, Train Loss: 0.3240, Val Loss: 0.3798\n",
+      "Epoch 5/10, Train Loss: 0.3154, Val Loss: 0.3209\n",
+      "Epoch 6/10, Train Loss: 0.3062, Val Loss: 0.3553\n",
+      "Epoch 7/10, Train Loss: 0.3005, Val Loss: 0.3476\n",
+      "Epoch 8/10, Train Loss: 0.2965, Val Loss: 0.3247\n",
+      "Early stopping triggered.\n",
+      "Starting training for a new fold\n",
+      "Epoch 1/10, Train Loss: 0.3989, Val Loss: 0.4019\n",
+      "Epoch 2/10, Train Loss: 0.3575, Val Loss: 0.4159\n",
+      "Epoch 3/10, Train Loss: 0.3335, Val Loss: 0.4144\n",
+      "Epoch 4/10, Train Loss: 0.3231, Val Loss: 0.3582\n",
+      "Epoch 5/10, Train Loss: 0.3126, Val Loss: 0.3334\n",
+      "Epoch 6/10, Train Loss: 0.3051, Val Loss: 0.2881\n",
+      "Epoch 7/10, Train Loss: 0.3027, Val Loss: 0.3226\n",
+      "Epoch 8/10, Train Loss: 0.2971, Val Loss: 0.3374\n",
+      "Epoch 9/10, Train Loss: 0.2918, Val Loss: 0.3042\n",
+      "Early stopping triggered.\n",
+      "Starting training for a new fold\n",
+      "Epoch 1/10, Train Loss: 0.4012, Val Loss: 0.4350\n",
+      "Epoch 2/10, Train Loss: 0.3551, Val Loss: 0.3935\n",
+      "Epoch 3/10, Train Loss: 0.3343, Val Loss: 0.3425\n",
+      "Epoch 4/10, Train Loss: 0.3247, Val Loss: 0.3844\n",
+      "Epoch 5/10, Train Loss: 0.3171, Val Loss: 0.3138\n",
+      "Epoch 6/10, Train Loss: 0.3091, Val Loss: 0.3545\n",
+      "Epoch 7/10, Train Loss: 0.3037, Val Loss: 0.3736\n",
+      "Epoch 8/10, Train Loss: 0.2994, Val Loss: 0.3630\n",
+      "Early stopping triggered.\n"
      ]
     }
    ],
    "source": [
-    "# Training the model\n",
-    "num_epochs = 10\n",
-    "for epoch in range(num_epochs):\n",
-    "    for reviews, sentiments in combined_loader:\n",
-    "        optimizer.zero_grad()\n",
-    "        outputs = model(reviews).squeeze()\n",
-    "        loss = criterion(outputs, sentiments)\n",
-    "        loss.backward()\n",
-    "        optimizer.step()\n",
-    "    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}')"
+    "# Cross-validation\n",
+    "kf = KFold(n_splits=7, shuffle=True, random_state=42)\n",
+    "criterion = nn.BCELoss()\n",
+    "\n",
+    "# weight=class_weights[torch.tensor(y[train_index], dtype=torch.long)]\n",
+    "\n",
+    "for train_index, val_index in kf.split(combined_dataset):\n",
+    "    train_sampler = torch.utils.data.SubsetRandomSampler(train_index)\n",
+    "    val_sampler = torch.utils.data.SubsetRandomSampler(val_index)\n",
+    "\n",
+    "    train_loader = DataLoader(combined_dataset, batch_size=32, sampler=sampler)\n",
+    "    val_loader = DataLoader(combined_dataset, batch_size=32, sampler=val_sampler)\n",
+    "\n",
+    "    model = ANN()\n",
+    "    optimizer = optim.Adam(model.parameters(), lr=0.001)\n",
+    "\n",
+    "    print(\"Starting training for a new fold\")\n",
+    "    train_model(model, criterion, optimizer, train_loader, val_loader)"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 34,
-   "id": "1bc88ab6",
+   "id": "a0f4c511",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:50.776740Z",
-     "iopub.status.busy": "2024-07-16T23:29:50.776333Z",
-     "iopub.status.idle": "2024-07-16T23:29:50.782916Z",
-     "shell.execute_reply": "2024-07-16T23:29:50.781883Z"
+     "iopub.execute_input": "2024-07-20T00:41:24.984746Z",
+     "iopub.status.busy": "2024-07-20T00:41:24.984427Z",
+     "iopub.status.idle": "2024-07-20T00:41:24.991146Z",
+     "shell.execute_reply": "2024-07-20T00:41:24.990250Z"
     },
     "papermill": {
-     "duration": 0.024834,
-     "end_time": "2024-07-16T23:29:50.785107",
+     "duration": 0.029975,
+     "end_time": "2024-07-20T00:41:24.993270",
      "exception": false,
-     "start_time": "2024-07-16T23:29:50.760273",
+     "start_time": "2024-07-20T00:41:24.963295",
      "status": "completed"
     },
     "tags": []
    },
    "outputs": [],
    "source": [
-    "# Evaluation\n",
+    "# Evaluation on Paignton and Newquay datasets\n",
     "def evaluate(model, dataset):\n",
     "    loader = DataLoader(dataset, batch_size=32, shuffle=False)\n",
     "    model.eval()\n",
@@ -2821,19 +3024,19 @@
   {
    "cell_type": "code",
    "execution_count": 35,
-   "id": "6c897891",
+   "id": "dd009a7f",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:50.816540Z",
-     "iopub.status.busy": "2024-07-16T23:29:50.816144Z",
-     "iopub.status.idle": "2024-07-16T23:29:50.943885Z",
-     "shell.execute_reply": "2024-07-16T23:29:50.942768Z"
+     "iopub.execute_input": "2024-07-20T00:41:25.037509Z",
+     "iopub.status.busy": "2024-07-20T00:41:25.037212Z",
+     "iopub.status.idle": "2024-07-20T00:56:02.083725Z",
+     "shell.execute_reply": "2024-07-20T00:56:02.082692Z"
     },
     "papermill": {
-     "duration": 0.146499,
-     "end_time": "2024-07-16T23:29:50.946394",
+     "duration": 877.093532,
+     "end_time": "2024-07-20T00:56:02.108268",
      "exception": false,
-     "start_time": "2024-07-16T23:29:50.799895",
+     "start_time": "2024-07-20T00:41:25.014736",
      "status": "completed"
     },
     "tags": []
@@ -2843,574 +3046,161 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Paignton Predictions: [0. 1. 1. ... 1. 1. 0.]\n",
-      "Paignton Actuals: [0. 0. 0. ... 1. 1. 1.]\n",
-      "Newquay Predictions: [1. 1. 1. ... 1. 1. 1.]\n",
-      "Newquay Actuals: [0. 0. 0. ... 0. 0. 1.]\n"
+      "Epoch 1/10, Train Loss: 0.3086, Val Loss: 0.2836\n",
+      "Epoch 2/10, Train Loss: 0.2820, Val Loss: 0.2582\n",
+      "Epoch 3/10, Train Loss: 0.2736, Val Loss: 0.2556\n",
+      "Epoch 4/10, Train Loss: 0.2677, Val Loss: 0.2485\n",
+      "Epoch 5/10, Train Loss: 0.2644, Val Loss: 0.2592\n",
+      "Epoch 6/10, Train Loss: 0.2606, Val Loss: 0.2520\n",
+      "Epoch 7/10, Train Loss: 0.2580, Val Loss: 0.2402\n",
+      "Epoch 8/10, Train Loss: 0.2565, Val Loss: 0.2494\n",
+      "Epoch 9/10, Train Loss: 0.2540, Val Loss: 0.2398\n",
+      "Epoch 10/10, Train Loss: 0.2507, Val Loss: 0.2356\n"
      ]
     }
    ],
    "source": [
-    "pred_paignton, actual_paignton = evaluate(model, paignton_dataset)\n",
-    "pred_newquay, actual_newquay = evaluate(model, newquay_dataset)\n",
-    "\n",
-    "# Print evaluation results\n",
-    "print(\"Paignton Predictions:\", pred_paignton)\n",
-    "print(\"Paignton Actuals:\", actual_paignton)\n",
-    "print(\"Newquay Predictions:\", pred_newquay)\n",
-    "print(\"Newquay Actuals:\", actual_newquay)"
+    "# Train final model on full training data\n",
+    "combined_loader = DataLoader(combined_dataset, batch_size=32, shuffle=True)\n",
+    "model = ANN()\n",
+    "optimizer = optim.Adam(model.parameters(), lr=0.001)\n",
+    "train_model(model, criterion, optimizer, combined_loader, val_loader)"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 36,
-   "id": "5413f568",
+   "id": "65388500",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:50.978695Z",
-     "iopub.status.busy": "2024-07-16T23:29:50.978283Z",
-     "iopub.status.idle": "2024-07-16T23:29:50.983957Z",
-     "shell.execute_reply": "2024-07-16T23:29:50.982854Z"
+     "iopub.execute_input": "2024-07-20T00:56:02.153633Z",
+     "iopub.status.busy": "2024-07-20T00:56:02.152940Z",
+     "iopub.status.idle": "2024-07-20T00:56:02.801796Z",
+     "shell.execute_reply": "2024-07-20T00:56:02.800832Z"
     },
     "papermill": {
-     "duration": 0.024595,
-     "end_time": "2024-07-16T23:29:50.986297",
+     "duration": 0.673919,
+     "end_time": "2024-07-20T00:56:02.804292",
      "exception": false,
-     "start_time": "2024-07-16T23:29:50.961702",
+     "start_time": "2024-07-20T00:56:02.130373",
      "status": "completed"
     },
     "tags": []
    },
    "outputs": [],
    "source": [
-    "# # Train FastText model\n",
-    "# fasttext_model = FastText(sentences=pd.concat([X_train1, X_train2, X_train3]).tolist(), window=5, min_count=5, workers=4)\n",
-    "\n",
-    "# # Function to generate FastText embeddings\n",
-    "# def generate_fasttext_embeddings(text_data):\n",
-    "#     embeddings = []\n",
-    "#     for text in text_data:\n",
-    "#         embedding = [fasttext_model.wv[word] for word in text.split() if word in fasttext_model.wv]\n",
-    "#         if embedding:\n",
-    "#             embeddings.append(np.mean(embedding, axis=0))\n",
-    "#         else:\n",
-    "#             embeddings.append(np.zeros(100))  # Handle out-of-vocabulary words\n",
-    "#     return np.array(embeddings)\n",
-    "\n",
-    "# # Generate FastText embeddings for train and test data\n",
-    "# X_train1_embeddings = generate_fasttext_embeddings(X_train1)\n",
-    "# X_test1_embeddings = generate_fasttext_embeddings(X_test1)\n",
-    "\n",
-    "# X_train2_embeddings = generate_fasttext_embeddings(X_train2)\n",
-    "# X_test2_embeddings = generate_fasttext_embeddings(X_test2)\n",
-    "\n",
-    "# X_train3_embeddings = generate_fasttext_embeddings(X_train3)\n",
-    "# X_test3_embeddings = generate_fasttext_embeddings(X_test3)"
+    "# Evaluate on test datasets\n",
+    "pred_paignton, actual_paignton = evaluate(model, paignton_dataset)\n",
+    "pred_newquay, actual_newquay = evaluate(model, newquay_dataset)"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 37,
-   "id": "b45fc31c",
+   "id": "d7979873",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:51.018897Z",
-     "iopub.status.busy": "2024-07-16T23:29:51.018483Z",
-     "iopub.status.idle": "2024-07-16T23:29:51.023453Z",
-     "shell.execute_reply": "2024-07-16T23:29:51.022478Z"
+     "iopub.execute_input": "2024-07-20T00:56:02.848790Z",
+     "iopub.status.busy": "2024-07-20T00:56:02.847916Z",
+     "iopub.status.idle": "2024-07-20T00:56:02.878235Z",
+     "shell.execute_reply": "2024-07-20T00:56:02.877270Z"
     },
     "papermill": {
-     "duration": 0.023201,
-     "end_time": "2024-07-16T23:29:51.025522",
+     "duration": 0.054447,
+     "end_time": "2024-07-20T00:56:02.880506",
      "exception": false,
-     "start_time": "2024-07-16T23:29:51.002321",
+     "start_time": "2024-07-20T00:56:02.826059",
      "status": "completed"
     },
     "tags": []
    },
-   "outputs": [],
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Paignton Confusion Matrix: [[433 712]\n",
+      " [ 38 880]]\n",
+      "Newquay Confusion Matrix: [[156 491]\n",
+      " [ 46 913]]\n",
+      "Paignton Accuracy: 0.6364517692680562\n",
+      "Newquay Accuracy: 0.6656288916562889\n",
+      "Paignton Precision: 0.5527638190954773\n",
+      "Newquay Precision: 0.6502849002849003\n",
+      "Paignton Recall: 0.9586056644880174\n",
+      "Newquay Recall: 0.9520333680917622\n",
+      "Paignton F1 Score: 0.7011952191235059\n",
+      "Newquay F1 Score: 0.7727465086754125\n"
+     ]
+    }
+   ],
    "source": [
-    "# tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')\n",
-    "# max_length = 128\n",
+    "# Calculate and print metrics\n",
     "\n",
-    "# # Function to tokenize and encode text data\n",
-    "# def tokenize_and_encode(text_data):\n",
-    "#     return tokenizer(text_data.tolist(), padding='max_length', truncation=True, max_length=max_length, return_tensors='tf')\n",
+    "conf_paignton = confusion_matrix(actual_paignton, pred_paignton)\n",
+    "conf_newquay = confusion_matrix(actual_newquay, pred_newquay)\n",
     "\n",
-    "# # Tokenize and encode train and test data\n",
-    "# X_train1_encoded = tokenize_and_encode(X_train1)\n",
-    "# X_test1_encoded = tokenize_and_encode(X_test1)\n",
+    "accuracy_paignton = accuracy_score(actual_paignton, pred_paignton)\n",
+    "accuracy_newquay = accuracy_score(actual_newquay, pred_newquay)\n",
     "\n",
-    "# X_train2_encoded = tokenize_and_encode(X_train2)\n",
-    "# X_test2_encoded = tokenize_and_encode(X_test2)\n",
+    "precision_paignton = precision_score(actual_paignton, pred_paignton)\n",
+    "precision_newquay = precision_score(actual_newquay, pred_newquay)\n",
     "\n",
-    "# X_train3_encoded = tokenize_and_encode(X_train3)\n",
-    "# X_test3_encoded = tokenize_and_encode(X_test3)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 38,
-   "id": "486c66eb",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:51.057728Z",
-     "iopub.status.busy": "2024-07-16T23:29:51.057340Z",
-     "iopub.status.idle": "2024-07-16T23:29:51.064334Z",
-     "shell.execute_reply": "2024-07-16T23:29:51.063292Z"
-    },
-    "papermill": {
-     "duration": 0.026083,
-     "end_time": "2024-07-16T23:29:51.066551",
-     "exception": false,
-     "start_time": "2024-07-16T23:29:51.040468",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "# # Assuming you have precomputed FastText embeddings\n",
-    "# embedding_dim = 300  # Adjust this according to your FastText embedding dimensions\n",
+    "recall_paignton = recall_score(actual_paignton, pred_paignton)\n",
+    "recall_newquay = recall_score(actual_newquay, pred_newquay)\n",
     "\n",
-    "# # Define inputs\n",
-    "# input_ids = Input(shape=(128,), dtype=tf.int32, name='input_ids')\n",
-    "# token_type_ids = Input(shape=(128,), dtype=tf.int32, name='token_type_ids')\n",
-    "# attention_mask = Input(shape=(128,), dtype=tf.int32, name='attention_mask')\n",
+    "f1_paignton = f1_score(actual_paignton, pred_paignton)\n",
+    "f1_newquay = f1_score(actual_newquay, pred_newquay)\n",
     "\n",
-    "# # Embedding layer (assuming precomputed FastText embeddings)\n",
-    "# embedding_layer = Embedding(input_dim=100, output_dim=embedding_dim, trainable=True)\n",
-    "# embeddings = embedding_layer(input_ids)\n",
+    "print(\"Paignton Confusion Matrix:\", conf_paignton)\n",
+    "print(\"Newquay Confusion Matrix:\", conf_newquay)\n",
     "\n",
-    "# # Concatenate embeddings with token_type_ids and attention_mask\n",
-    "# x = Concatenate()([embeddings, tf.expand_dims(tf.cast(token_type_ids, tf.float32), axis=-1), tf.expand_dims(tf.cast(attention_mask, tf.float32), axis=-1)])\n",
+    "print(\"Paignton Accuracy:\", accuracy_paignton)\n",
+    "print(\"Newquay Accuracy:\", accuracy_newquay)\n",
     "\n",
-    "# # Flatten or use GlobalAveragePooling1D to prepare for dense layers\n",
-    "# x = Flatten()(x)\n",
+    "print(\"Paignton Precision:\", precision_paignton)\n",
+    "print(\"Newquay Precision:\", precision_newquay)\n",
     "\n",
-    "# # ANN layers\n",
-    "# x = Dense(256, activation='relu')(x)\n",
-    "# x = Dense(128, activation='relu')(x)\n",
-    "# x = Dense(64, activation='relu')(x)\n",
+    "print(\"Paignton Recall:\", recall_paignton)\n",
+    "print(\"Newquay Recall:\", recall_newquay)\n",
     "\n",
-    "# # Output layer for binary classification with sigmoid activation\n",
-    "# outputs = Dense(1, activation='sigmoid')(x)\n",
-    "\n",
-    "# # Define the model\n",
-    "# model = Model(inputs=[input_ids, token_type_ids, attention_mask], outputs=outputs)\n",
-    "\n",
-    "# # Compile the model\n",
-    "# model.compile(optimizer='adam',\n",
-    "#               loss='binary_crossentropy',\n",
-    "#               metrics=['accuracy'])\n",
-    "\n",
-    "# # Assuming you have three weighted datasets and corresponding test sets\n",
-    "# train_weights = [0.3, 0.3, 0.4]\n",
-    "\n",
-    "# # Assuming train_1, train_2, train_3 are your weighted training datasets\n",
-    "# # train_1, train_2, train_3 should be tuples of (input_ids, token_type_ids, attention_mask, labels)\n",
-    "\n",
-    "# # Concatenate all input_ids, token_type_ids, attention_mask, and labels\n",
-    "# all_input_ids = tf.concat([X_train1_encoded[0], X_train2_encoded[0], X_train3_encoded[0]], axis=0)\n",
-    "# all_token_type_ids = tf.concat([X_train1_encoded[1], X_train2_encoded[1], X_train3_encoded[1]], axis=0)\n",
-    "# all_attention_mask = tf.concat([X_train1_encoded[2], X_train2_encoded[2], X_train3_encoded[2]], axis=0)\n",
-    "# all_labels = tf.concat([X_train1_encoded[3], X_train2_encoded[3], X_train3_encoded[3]], axis=0)\n",
-    "\n",
-    "# # Train the model on all datasets with respective weights\n",
-    "# history = model.fit([all_input_ids, all_token_type_ids, all_attention_mask], all_labels,\n",
-    "#                     epochs=10,\n",
-    "#                     batch_size=32,\n",
-    "#                     sample_weight=[train_weights[0] * tf.ones_like(X_train1_encoded[0][:, 0]),\n",
-    "#                                    train_weights[1] * tf.ones_like(X_train2_encoded[0][:, 0]),\n",
-    "#                                    train_weights[2] * tf.ones_like(X_train3_encoded[0][:, 0])])\n",
-    "\n",
-    "# # Evaluate on test datasets\n",
-    "# test_results_1 = model.evaluate([X_test1_encoding[0], X_test1_encoding[1], X_test1_encoding[2]], X_test1_encoding[3])\n",
-    "# test_results_2 = model.evaluate([X_test2_encoding[0], X_test2_encoding[1], X_test2_encoding[2]], X_test2_encoding[3])\n",
-    "# test_results_3 = model.evaluate([X_test3_encoding[0], X_test3_encoding[1], X_test3_encoding[2]], X_test3_encoding[3])\n",
-    "\n",
-    "# print(\"Test results for test_1:\")\n",
-    "# print(f\"Loss: {test_results_1[0]}, Accuracy: {test_results_1[1]}\")\n",
-    "\n",
-    "# print(\"\\nTest results for test_2:\")\n",
-    "# print(f\"Loss: {test_results_2[0]}, Accuracy: {test_results_2[1]}\")\n",
-    "\n",
-    "# print(\"\\nTest results for test_3:\")\n",
-    "# print(f\"Loss: {test_results_3[0]}, Accuracy: {test_results_3[1]}\")"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 39,
-   "id": "1012801c",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:51.099176Z",
-     "iopub.status.busy": "2024-07-16T23:29:51.098774Z",
-     "iopub.status.idle": "2024-07-16T23:29:51.105877Z",
-     "shell.execute_reply": "2024-07-16T23:29:51.104700Z"
-    },
-    "papermill": {
-     "duration": 0.026042,
-     "end_time": "2024-07-16T23:29:51.108201",
-     "exception": false,
-     "start_time": "2024-07-16T23:29:51.082159",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "# # Function to create the model\n",
-    "# def create_model():\n",
-    "#     # Define the BERT model\n",
-    "#     bert_model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=3)\n",
-    "\n",
-    "#     # Define input layers\n",
-    "#     input_ids = Input(shape=(100,), dtype=tf.int32, name='input_ids')\n",
-    "# #     attention_mask = Input(shape=(128,), dtype=tf.int32, name='attention_mask')\n",
-    "#     fasttext_embeddings = Input(shape=(100,), dtype=tf.float32, name='fasttext_embeddings')\n",
-    "\n",
-    "#     # BERT embeddings\n",
-    "#     bert_output = bert_model(input_ids)[0]\n",
-    "    \n",
-    "#     # Dropout some samples randomly\n",
-    "#     dropout = Dropout(0.1)(bert_output)\n",
-    "\n",
-    "#     # Concatenate BERT embeddings with FastText embeddings\n",
-    "#     concatenated_features = Concatenate()([dropout, fasttext_embeddings])\n",
-    "\n",
-    "#     # Define model architecture\n",
-    "#     dense = Dense(128, activation='relu')(concatenated_features)\n",
-    "#     dropout = Dropout(0.1)(dense)\n",
-    "#     output = Dense(3, activation='softmax')(dropout)\n",
-    "    \n",
-    "#     model = Model(inputs=[input_ids, fasttext_embeddings], outputs=output)\n",
-    "#     return model\n",
-    "\n",
-    "# # Define model\n",
-    "# model = create_model()\n",
-    "\n",
-    "# # Define early stopping callback\n",
-    "# early_stopping = EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True)\n",
-    "\n",
-    "# # Compile model\n",
-    "# optimizer = tf.keras.optimizers.Adam(learning_rate=2e-5)\n",
-    "# model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])\n",
-    "\n",
-    "# # Training dataset weights\n",
-    "# train_weights = np.concatenate([\n",
-    "#     np.full(len(train_1), 0.3),\n",
-    "#     np.full(len(train_2), 0.3),\n",
-    "#     np.full(len(train_3), 0.4)\n",
-    "# ])\n",
-    "\n",
-    "# # Combine the training datasets\n",
-    "# X_train_input_ids = np.concatenate([train_1_input_ids, train_2_input_ids, train_3_input_ids])\n",
-    "# X_train_fasttext = np.concatenate([train_1_fasttext, train_2_fasttext, train_3_fasttext])\n",
-    "# y_train = np.concatenate([train_1_labels, train_2_labels, train_3_labels])\n",
-    "\n",
-    "# # Train model\n",
-    "# history = model.fit(\n",
-    "#     [X_train_input_ids, X_train_fasttext], \n",
-    "#     to_categorical(y_train, num_classes=3), \n",
-    "#     sample_weight=train_weights,\n",
-    "#     epochs=7, \n",
-    "#     batch_size=32, \n",
-    "#     validation_split=0.2, \n",
-    "#     callbacks=[early_stopping]\n",
-    "# )\n",
-    "\n",
-    "# # Combine the test datasets\n",
-    "# X_test_input_ids = np.concatenate([test_1_input_ids, test_2_input_ids, test_3_input_ids])\n",
-    "# X_test_fasttext = np.concatenate([test_1_fasttext, test_2_fasttext, test_3_fasttext])\n",
-    "# y_test = np.concatenate([test_1_labels, test_2_labels, test_3_labels])\n",
-    "\n",
-    "# # Evaluate model\n",
-    "# loss, accuracy = model.evaluate(\n",
-    "#     [X_test_input_ids, X_test_fasttext], \n",
-    "#     to_categorical(y_test, num_classes=3)\n",
-    "# )\n",
-    "# print(f'Test Loss: {loss}, Test Accuracy: {accuracy}')\n",
-    "\n",
-    "# # Predict and evaluate performance\n",
-    "# y_prob_bert = model.predict([X_test_input_ids, X_test_fasttext])\n",
-    "# y_pred_bert = np.argmax(y_prob_bert, axis=1)\n",
-    "\n",
-    "# bert_roc_auc_score = roc_auc_score(to_categorical(y_test, num_classes=3), y_prob_bert, multi_class='ovr')\n",
-    "# bert_accuracy_score = accuracy_score(y_test, y_pred_bert)\n",
-    "\n",
-    "# print('Model overall ROC AUC score: {:.3f}'.format(bert_roc_auc_score))\n",
-    "# print('Model overall accuracy: {:.3f}'.format(bert_accuracy_score))"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 40,
-   "id": "c88b67a2",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:51.140623Z",
-     "iopub.status.busy": "2024-07-16T23:29:51.140192Z",
-     "iopub.status.idle": "2024-07-16T23:29:51.147005Z",
-     "shell.execute_reply": "2024-07-16T23:29:51.145958Z"
-    },
-    "papermill": {
-     "duration": 0.026051,
-     "end_time": "2024-07-16T23:29:51.149466",
-     "exception": false,
-     "start_time": "2024-07-16T23:29:51.123415",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "# # Combine train data\n",
-    "# X_train_encoded = {key: tf.concat([X_train1_encoded[key], X_train2_encoded[key], X_train3_encoded[key]], axis=0) for key in X_train1_encoded.keys()}\n",
-    "# X_train_embeddings = np.concatenate([X_train1_embeddings, X_train2_embeddings, X_train3_embeddings], axis=0)\n",
-    "# y_train = np.concatenate([y_train1, y_train2, y_train3], axis=0)\n",
-    "# weights = np.concatenate([np.full(len(X_train1), 0.3), np.full(len(X_train2), 0.3), np.full(len(X_train3), 0.4)])\n",
-    "\n",
-    "# # Combine test data\n",
-    "# X_test_encoded = {key: tf.concat([X_test1_encoded[key], X_test2_encoded[key], X_test3_encoded[key]], axis=0) for key in X_test1_encoded.keys()}\n",
-    "# X_test_embeddings = np.concatenate([X_test1_embeddings, X_test2_embeddings, X_test3_embeddings], axis=0)\n",
-    "# y_test = np.concatenate([y_test1, y_test2, y_test3], axis=0)\n",
-    "\n",
-    "# # Define model architecture\n",
-    "# def create_model():\n",
-    "#     bert_model = TFBertModel.from_pretrained('bert-base-uncased')\n",
-    "#     input_ids = Input(shape=(max_length,), dtype=tf.int32, name='input_ids')\n",
-    "#     print(type(input_ids))\n",
-    "#     attention_mask = Input(shape=(max_length,), dtype=tf.int32, name='attention_mask')\n",
-    "#     fasttext_embeddings = Input(shape=(100,), dtype=tf.float32, name='fasttext_embeddings')\n",
-    "    \n",
-    "#     # BERT embeddings\n",
-    "#     bert_output = bert_model(input_ids)[0]\n",
-    "#     dropout = Dropout(0.1)(bert_output[:, 0, :])  # Use the output of [CLS] token\n",
-    "\n",
-    "#     # Concatenate BERT embeddings with FastText embeddings\n",
-    "#     concatenated_features = Concatenate()([dropout, fasttext_embeddings])\n",
-    "\n",
-    "#     # Define model architecture\n",
-    "#     dense = Dense(128, activation='relu')(concatenated_features)\n",
-    "#     dropout = Dropout(0.1)(dense)\n",
-    "#     output = Dense(3, activation='softmax')(dropout)\n",
-    "    \n",
-    "#     model = Model(inputs=[input_ids, attention_mask, fasttext_embeddings], outputs=output)\n",
-    "#     return model\n",
-    "\n",
-    "# model = create_model()\n",
-    "\n",
-    "# # Define early stopping callback\n",
-    "# early_stopping = EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True)\n",
-    "\n",
-    "# # Compile model\n",
-    "# optimizer = tf.keras.optimizers.Adam(learning_rate=2e-5)\n",
-    "# model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])\n",
-    "\n",
-    "# # Train model\n",
-    "# history = model.fit(\n",
-    "#     [X_train_encoded['input_ids'], X_train_encoded['attention_mask'], X_train_embeddings],\n",
-    "#     tf.keras.utils.to_categorical(y_train, num_classes=3),\n",
-    "#     sample_weight=weights,\n",
-    "#     epochs=7,\n",
-    "#     batch_size=32,\n",
-    "#     validation_split=0.2,\n",
-    "#     callbacks=[early_stopping]\n",
-    "# )\n",
-    "\n",
-    "# # Evaluate model\n",
-    "# loss, accuracy = model.evaluate(\n",
-    "#     [X_test_encoded['input_ids'], X_test_encoded['attention_mask'], X_test_embeddings],\n",
-    "#     tf.keras.utils.to_categorical(y_test, num_classes=3)\n",
-    "# )\n",
-    "# print(f'Test Loss: {loss}, Test Accuracy: {accuracy}')\n",
-    "\n",
-    "# y_prob_bert = model.predict([X_test_encoded['input_ids'], X_test_encoded['attention_mask'], X_test_embeddings])\n",
-    "# y_pred_bert = np.argmax(y_prob_bert, axis=1)\n",
-    "\n",
-    "# bert_roc_auc_score = roc_auc_score(tf.keras.utils.to_categorical(y_test, num_classes=3), y_prob_bert, multi_class='ovr')\n",
-    "# bert_accuracy_score = accuracy_score(y_test, y_pred_bert)\n",
-    "\n",
-    "# print('Model overall ROC AUC score: {:.3f}'.format(bert_roc_auc_score))\n",
-    "# print('Model overall accuracy: {:.3f}'.format(bert_accuracy_score))"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 41,
-   "id": "521e8663",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:51.182581Z",
-     "iopub.status.busy": "2024-07-16T23:29:51.182168Z",
-     "iopub.status.idle": "2024-07-16T23:29:51.186917Z",
-     "shell.execute_reply": "2024-07-16T23:29:51.185771Z"
-    },
-    "papermill": {
-     "duration": 0.024477,
-     "end_time": "2024-07-16T23:29:51.189278",
-     "exception": false,
-     "start_time": "2024-07-16T23:29:51.164801",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "# tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')\n",
-    "# model = BertModel.from_pretrained('bert-base-uncased')\n",
-    "\n",
-    "# def extract_features(text):\n",
-    "#     inputs = tokenizer(text, return_tensors='pt', max_length=512, truncation=True, padding=True)\n",
-    "#     outputs = model(**inputs)\n",
-    "#     return outputs.last_hidden_state.mean(dim=1).detach().numpy()\n",
-    "\n",
-    "# for df in [disney, universal, museum]:\n",
-    "#     df['features'] = df['cleaned_review'].apply(lambda x: extract_features(x).flatten())"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 42,
-   "id": "ff27b49f",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:51.221615Z",
-     "iopub.status.busy": "2024-07-16T23:29:51.221205Z",
-     "iopub.status.idle": "2024-07-16T23:29:51.226149Z",
-     "shell.execute_reply": "2024-07-16T23:29:51.224895Z"
-    },
-    "papermill": {
-     "duration": 0.023626,
-     "end_time": "2024-07-16T23:29:51.228320",
-     "exception": false,
-     "start_time": "2024-07-16T23:29:51.204694",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "# X_train1, X_val1, y_train1, y_val1 = train_test_split(\n",
-    "#     np.stack(disney['features'].values), disney['sentiment'].values, test_size=0.2, random_state=42)\n",
-    "\n",
-    "# X_train2, X_val2, y_train2, y_val2 = train_test_split(\n",
-    "#     np.stack(universal['features'].values), universal['sentiment'].values, test_size=0.2, random_state=42)\n",
-    "\n",
-    "# X_train3, X_val3, y_train3, y_val3 = train_test_split(\n",
-    "#     np.stack(museum['features'].values), museum['sentiment'].values, test_size=0.2, random_state=42)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 43,
-   "id": "ddb6a5e8",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:51.261448Z",
-     "iopub.status.busy": "2024-07-16T23:29:51.260402Z",
-     "iopub.status.idle": "2024-07-16T23:29:51.265921Z",
-     "shell.execute_reply": "2024-07-16T23:29:51.264665Z"
-    },
-    "papermill": {
-     "duration": 0.024493,
-     "end_time": "2024-07-16T23:29:51.268210",
-     "exception": false,
-     "start_time": "2024-07-16T23:29:51.243717",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "# # Combine the training data\n",
-    "# X_train = np.concatenate((X_train1, X_train2, X_train3), axis=0)\n",
-    "# y_train = np.concatenate((y_train1, y_train2, y_train3), axis=0)\n",
-    "\n",
-    "# # Assign weights to the datasets\n",
-    "# weights = np.concatenate((np.full(len(X_train1), 0.3), np.full(len(X_train2), 0.3), np.full(len(X_train3), 0.4)))\n",
-    "\n",
-    "# # Train the logistic regression model\n",
-    "# model = LogisticRegression(max_iter=1000)\n",
-    "# model.fit(X_train, y_train, sample_weight=weights)\n",
-    "\n",
-    "# # Combine the validation data\n",
-    "# X_val = np.concatenate((X_val1, X_val2, X_val3), axis=0)\n",
-    "# y_val = np.concatenate((y_val1, y_val2, y_val3), axis=0)\n",
-    "\n",
-    "# # Evaluate the model\n",
-    "# y_pred = model.predict(X_val)\n",
-    "# accuracy = accuracy_score(y_val, y_pred)\n",
-    "# print(f'Validation Accuracy: {accuracy}')"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 44,
-   "id": "0dee397d",
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2024-07-16T23:29:51.301472Z",
-     "iopub.status.busy": "2024-07-16T23:29:51.301069Z",
-     "iopub.status.idle": "2024-07-16T23:29:51.306180Z",
-     "shell.execute_reply": "2024-07-16T23:29:51.304771Z"
-    },
-    "papermill": {
-     "duration": 0.024419,
-     "end_time": "2024-07-16T23:29:51.308684",
-     "exception": false,
-     "start_time": "2024-07-16T23:29:51.284265",
-     "status": "completed"
-    },
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
-    "# # Print accuracy\n",
-    "# print(f'Validation Accuracy: {accuracy}')\n",
-    "# print(classification_report(y_val, y_pred))"
+    "print(\"Paignton F1 Score:\", f1_paignton)\n",
+    "print(\"Newquay F1 Score:\", f1_newquay)"
    ]
   }
  ],
  "metadata": {
   "kaggle": {
-   "accelerator": "none",
+   "accelerator": "gpu",
    "dataSources": [
     {
-     "databundleVersionId": 1896456,
-     "datasetId": 1105807,
-     "sourceId": 1858576,
-     "sourceType": "datasetVersion"
-    },
-    {
-     "databundleVersionId": 19053,
      "datasetId": 14154,
      "sourceId": 19053,
      "sourceType": "datasetVersion"
     },
     {
-     "databundleVersionId": 2345651,
+     "datasetId": 1105807,
+     "sourceId": 1858576,
+     "sourceType": "datasetVersion"
+    },
+    {
      "datasetId": 1389694,
      "sourceId": 2304311,
      "sourceType": "datasetVersion"
     },
     {
-     "databundleVersionId": 4608666,
      "datasetId": 2655259,
      "sourceId": 4547702,
      "sourceType": "datasetVersion"
     },
     {
-     "databundleVersionId": 9134968,
      "datasetId": 5391899,
      "sourceId": 8970763,
      "sourceType": "datasetVersion"
     }
    ],
    "dockerImageVersionId": 30746,
-   "isGpuEnabled": false,
+   "isGpuEnabled": true,
    "isInternetEnabled": true,
    "language": "python",
    "sourceType": "notebook"
@@ -3434,15 +3224,1733 @@
   },
   "papermill": {
    "default_parameters": {},
-   "duration": 616.44577,
-   "end_time": "2024-07-16T23:29:54.397441",
+   "duration": 18186.883196,
+   "end_time": "2024-07-20T00:56:06.214078",
    "environment_variables": {},
    "exception": null,
    "input_path": "__notebook__.ipynb",
    "output_path": "__notebook__.ipynb",
    "parameters": {},
-   "start_time": "2024-07-16T23:19:37.951671",
+   "start_time": "2024-07-19T19:52:59.330882",
    "version": "2.5.0"
+  },
+  "widgets": {
+   "application/vnd.jupyter.widget-state+json": {
+    "state": {
+     "03a76263403e41edbc55a52c58bf0f1a": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "03c0989e499145f6b98a156c442735d4": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "05ee38faf2964c6185eebac259ba5cc2": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_09d777154b59480f80a0bbecf381e11e",
+        "IPY_MODEL_e0239fee772f489db379bb8c9a4fde3c",
+        "IPY_MODEL_69a84008f8f043978365b3bc3809e556"
+       ],
+       "layout": "IPY_MODEL_18d946d12cd645cc8aeb93e9e95bcee3"
+      }
+     },
+     "09d777154b59480f80a0bbecf381e11e": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_92eba1d83cbe48cdb88a52ce3f569c43",
+       "placeholder": "​",
+       "style": "IPY_MODEL_6639d1670ae949b7b22262020163c07f",
+       "value": "tokenizer_config.json: 100%"
+      }
+     },
+     "0d85138e47154281b5a5d6b3e0a75b2d": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "0ee3efb1fc07493b8e3ad44134db0a4a": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_46b0b48e38f544659d6e01b621ddb5fb",
+        "IPY_MODEL_4847a8d610b6466e96a272f804105593",
+        "IPY_MODEL_35a1bcaf2f5048d3b3457300908803c4"
+       ],
+       "layout": "IPY_MODEL_f4f3a93c9dd84c03ac1977771032ed1a"
+      }
+     },
+     "18d946d12cd645cc8aeb93e9e95bcee3": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "22b6daa04f1d4a3d893357eb26034b20": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "260b77bbc95e4b1eb1753699f3fc6fbc": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_b6787602389341c39523e9b2a5d7c194",
+       "placeholder": "​",
+       "style": "IPY_MODEL_88ebeb0ef2d94daf8ab156a7d9b4a567",
+       "value": " 466k/466k [00:00&lt;00:00, 15.9MB/s]"
+      }
+     },
+     "316914c1287049afbdaca29c67b70756": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "35a1bcaf2f5048d3b3457300908803c4": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_88deade97f234333b2a4ee820b5faadb",
+       "placeholder": "​",
+       "style": "IPY_MODEL_41b498988172422f9b053cc1745a4b25",
+       "value": " 440M/440M [00:02&lt;00:00, 211MB/s]"
+      }
+     },
+     "378d26b84fb04d308e035537f8f22caa": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "4118493854ab472fbf5a4ff8edce31b2": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_d35ece54a5e0458a93f142aaf5a4027f",
+        "IPY_MODEL_876bd868b16a4b0c86d4342d47fb5eff",
+        "IPY_MODEL_ce08b30ba26f47bb8f2e820909e4d585"
+       ],
+       "layout": "IPY_MODEL_a57459546b0045929f551147b4508e2a"
+      }
+     },
+     "41b498988172422f9b053cc1745a4b25": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "45cb54be127f4ab5b831bc5161d70f45": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_5eab5648d740461faf4bea4807299ecd",
+       "max": 466062.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_a41dee3443d04057abbb41eee7b1e402",
+       "value": 466062.0
+      }
+     },
+     "46b0b48e38f544659d6e01b621ddb5fb": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_5f65f5b3b7bf4f0aa89f4b863002f287",
+       "placeholder": "​",
+       "style": "IPY_MODEL_9c61eeb4838e4560b70676cf2248a28c",
+       "value": "model.safetensors: 100%"
+      }
+     },
+     "4847a8d610b6466e96a272f804105593": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_51d6aa4854294811a4a70629013e6b03",
+       "max": 440449768.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_d4289532d1364beaabe9ad1a8fdb31df",
+       "value": 440449768.0
+      }
+     },
+     "51d6aa4854294811a4a70629013e6b03": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "5a8fc985cc2b4b8daf6915c4cc6d9be4": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "5eab5648d740461faf4bea4807299ecd": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "5f65f5b3b7bf4f0aa89f4b863002f287": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "6639d1670ae949b7b22262020163c07f": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "670786b6842f4d09a8b1ccc3a701b403": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "69a84008f8f043978365b3bc3809e556": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_6ab72b8178fe4323aaeb24e55e3c50bd",
+       "placeholder": "​",
+       "style": "IPY_MODEL_03a76263403e41edbc55a52c58bf0f1a",
+       "value": " 48.0/48.0 [00:00&lt;00:00, 3.11kB/s]"
+      }
+     },
+     "6ab72b8178fe4323aaeb24e55e3c50bd": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "7087582f274e4bb8a13bbc20a8ed3644": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_73184543b7d045a7bec4463e54e86f39",
+        "IPY_MODEL_a111291d5f454d76ade24276361c49fa",
+        "IPY_MODEL_b36ae3e2c8cb4f20a89bc6db777abfd7"
+       ],
+       "layout": "IPY_MODEL_378d26b84fb04d308e035537f8f22caa"
+      }
+     },
+     "73184543b7d045a7bec4463e54e86f39": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_b6ccabbaca1e4f4080800ddc53c55b7c",
+       "placeholder": "​",
+       "style": "IPY_MODEL_8eed4a3f645b4ccdbb231f4f36606793",
+       "value": "vocab.txt: 100%"
+      }
+     },
+     "78f9453385574050888916cb659ae49c": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_b7954a04e9a7439a83477fef3ecdc2a3",
+        "IPY_MODEL_45cb54be127f4ab5b831bc5161d70f45",
+        "IPY_MODEL_260b77bbc95e4b1eb1753699f3fc6fbc"
+       ],
+       "layout": "IPY_MODEL_03c0989e499145f6b98a156c442735d4"
+      }
+     },
+     "876bd868b16a4b0c86d4342d47fb5eff": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_d8b0722eb4a94ddfbe977ee4d396c9b9",
+       "max": 570.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_316914c1287049afbdaca29c67b70756",
+       "value": 570.0
+      }
+     },
+     "88deade97f234333b2a4ee820b5faadb": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "88ebeb0ef2d94daf8ab156a7d9b4a567": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "8eed4a3f645b4ccdbb231f4f36606793": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "92eba1d83cbe48cdb88a52ce3f569c43": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "9708cfbbf9f442dfaa304d36f70b4305": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "9c61eeb4838e4560b70676cf2248a28c": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "a111291d5f454d76ade24276361c49fa": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_f232f700d1a34f4b9ddadb00da1d8ba2",
+       "max": 231508.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_d6e280faa89c465a8019bf8384abb860",
+       "value": 231508.0
+      }
+     },
+     "a41dee3443d04057abbb41eee7b1e402": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "a57459546b0045929f551147b4508e2a": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "b36ae3e2c8cb4f20a89bc6db777abfd7": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_d9f2f2e6d4f949e79e18dd73418da792",
+       "placeholder": "​",
+       "style": "IPY_MODEL_0d85138e47154281b5a5d6b3e0a75b2d",
+       "value": " 232k/232k [00:00&lt;00:00, 3.72MB/s]"
+      }
+     },
+     "b6787602389341c39523e9b2a5d7c194": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "b6ccabbaca1e4f4080800ddc53c55b7c": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "b7954a04e9a7439a83477fef3ecdc2a3": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_5a8fc985cc2b4b8daf6915c4cc6d9be4",
+       "placeholder": "​",
+       "style": "IPY_MODEL_22b6daa04f1d4a3d893357eb26034b20",
+       "value": "tokenizer.json: 100%"
+      }
+     },
+     "ce08b30ba26f47bb8f2e820909e4d585": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_eff15c117f67478f931985398dc64759",
+       "placeholder": "​",
+       "style": "IPY_MODEL_f3160ecc9f5e4fa3a30183839edc8db9",
+       "value": " 570/570 [00:00&lt;00:00, 43.6kB/s]"
+      }
+     },
+     "d35ece54a5e0458a93f142aaf5a4027f": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_e9e63152252948f09c4cace3b358b31e",
+       "placeholder": "​",
+       "style": "IPY_MODEL_f1225d8f830e443b997d377eede23b7e",
+       "value": "config.json: 100%"
+      }
+     },
+     "d4289532d1364beaabe9ad1a8fdb31df": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "d6e280faa89c465a8019bf8384abb860": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "d8b0722eb4a94ddfbe977ee4d396c9b9": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "d9f2f2e6d4f949e79e18dd73418da792": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "e0239fee772f489db379bb8c9a4fde3c": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_9708cfbbf9f442dfaa304d36f70b4305",
+       "max": 48.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_670786b6842f4d09a8b1ccc3a701b403",
+       "value": 48.0
+      }
+     },
+     "e9e63152252948f09c4cace3b358b31e": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "eff15c117f67478f931985398dc64759": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "f1225d8f830e443b997d377eede23b7e": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "f232f700d1a34f4b9ddadb00da1d8ba2": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "f3160ecc9f5e4fa3a30183839edc8db9": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "f4f3a93c9dd84c03ac1977771032ed1a": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     }
+    },
+    "version_major": 2,
+    "version_minor": 0
+   }
   }
  },
  "nbformat": 4,
